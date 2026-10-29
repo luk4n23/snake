@@ -3,28 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Snake na stole roboczym lasera fiber. Wycinasz detale, a klient po każdym ma uwagi.">
+<meta name="description" content="Świąteczny snake na stole lasera fiber. Wycinasz elementy choinki, a klient ma uwagi do projektu.">
 <title>Laser Snake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Saira+Stencil+One&display=swap">
 <style>
-/* Układ: pulpit maszyny — nagłówek, odczyty jak na sterowniku CNC, stół roboczy 3000×1500 mm z linijkami, obok skrzynka wiadomości od klienta */
+/* Układ: warsztat w zimową noc — nagłówek, odczyty sterownika, stół lasera z girlandą, obok rysunek projektu choinki i SMS-y od klienta */
 :root{
   color-scheme: dark;
-  --enamel:#27313a;      /* lakier korpusu maszyny */
-  --panel:#1c242b;       /* panele sterownika */
-  --line:#36434e;
-  --ink:#e8edf0;
-  --ink-dim:#97a5b1;
-  --safety:#f2c12e;      /* żółty BHP */
-  --safety-hi:#ffd651;
-  --safety-ink:#1b1a14;
-  --hazard-dark:#15191d;
-  --paper:#f6f4ee;       /* dymek SMS od klienta */
-  --paper-ink:#1d242a;
-  --paper-dim:#6a7680;
-  --scrim:rgba(13,17,21,0.74);
+  --night:#10201e;       /* zimowa noc nad halą */
+  --panel:#172a27;
+  --line:#2a4440;
+  --ink:#f3f0e7;         /* śnieg */
+  --ink-dim:#a2b4ad;
+  --gold:#e9b949;        /* złoto gwiazdki */
+  --gold-hi:#f5cc63;
+  --gold-ink:#22190a;
+  --berry:#c9323e;       /* czerwień bombki */
+  --pine:#2f7a4b;
+  --paper:#f4f1e8;       /* papier rysunku */
+  --paper-ink:#1f2a33;
+  --paper-dim:#6c7780;
+  --scrim:rgba(9,17,16,0.76);
   --f-display:"Saira Stencil One","Impact","Arial Narrow",sans-serif;
   --f-body:"Barlow Semi Condensed","Arial Narrow","Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,"Consolas",monospace;
@@ -32,25 +33,26 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--enamel);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body{background:var(--night);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 
-.app{max-width:1320px;margin:0 auto;padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+.app{position:relative;z-index:1;max-width:1340px;margin:0 auto;padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
 
 .top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
 .brand{display:grid;gap:6px;min-width:0}
-.brand-eyebrow{font:500 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--safety)}
+.brand-eyebrow{font:500 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
 .brand h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(38px,6.4vw,66px);line-height:.88;letter-spacing:.02em;text-wrap:balance}
-.brand h1 span{color:var(--safety)}
-.brand p{margin:0;color:var(--ink-dim);font-size:17px;max-width:60ch}
+.brand h1 span{color:var(--gold)}
+.brand p{margin:0;color:var(--ink-dim);font-size:17px;max-width:62ch}
 .top-actions{display:flex;gap:8px;flex-wrap:wrap}
 
 .btn{appearance:none;font:600 13px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 14px;cursor:pointer;transition:border-color .15s,background-color .15s}
 .btn:hover{border-color:var(--ink-dim)}
 .btn:disabled{opacity:.45;cursor:default}
 .btn:disabled:hover{border-color:var(--line)}
-.btn:focus-visible,.pad button:focus-visible{outline:2px solid var(--safety);outline-offset:2px}
-.btn-go{background:var(--safety);color:var(--safety-ink);border-color:var(--safety);font-size:16px;padding:14px 28px}
-.btn-go:hover{background:var(--safety-hi);border-color:var(--safety-hi)}
+.btn:focus-visible,.pad button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn-go{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-size:16px;padding:14px 28px}
+.btn-go:hover{background:var(--gold-hi);border-color:var(--gold-hi)}
 
 /* odczyty sterownika */
 .hud{margin:0;display:grid;grid-template-columns:minmax(0,1.7fr) repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}
@@ -58,10 +60,10 @@ body{background:var(--enamel);color:var(--ink);font-family:var(--f-body);font-si
 .ro dt{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ro dd{margin:0;font-family:var(--f-mono);font-size:21px;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ro-pos dd{display:flex;gap:20px}
-.ro-pos b{color:var(--safety);font-weight:500;margin-right:6px}
+.ro-pos b{color:var(--gold);font-weight:500;margin-right:6px}
 .ro dd small{font:500 12px var(--f-body);letter-spacing:.04em;color:var(--ink-dim);margin-left:8px}
 .ro dd.flash{animation:flash 1.4s ease}
-@keyframes flash{0%,30%{color:var(--safety)}100%{color:var(--ink)}}
+@keyframes flash{0%,30%{color:var(--gold)}100%{color:var(--ink)}}
 @media (max-width:760px){
   .hud{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ro-pos{grid-column:1/-1}
@@ -69,18 +71,22 @@ body{background:var(--enamel);color:var(--ink);font-family:var(--f-body);font-si
   .ro dd{font-size:18px}
 }
 
-/* stół + skrzynka */
-.work{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 280px;align-items:start}
+/* stół + kolumna boczna */
+.work{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 290px;align-items:start}
 @media (max-width:1000px){.work{grid-template-columns:minmax(0,1fr)}}
 
-.bed{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 10px 10px;overflow:hidden;min-width:0;display:grid;gap:12px}
-.bed::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(-45deg,var(--safety) 0 9px,var(--hazard-dark) 9px 18px)}
+.bed{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:34px 10px 10px;overflow:hidden;min-width:0;display:grid;gap:12px}
+.bed::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(-45deg,var(--berry) 0 9px,var(--ink) 9px 18px)}
+.lights{position:absolute;left:10px;right:10px;top:8px;height:20px;display:flex;justify-content:space-between;pointer-events:none}
+.lights::before{content:"";position:absolute;left:0;right:0;top:6px;height:8px;border-bottom:1.5px solid #3b5e48;border-radius:0 0 50% 50%/0 0 100% 100%}
+.lights i{position:relative;width:7px;height:10px;border-radius:50% 50% 45% 45%;margin-top:9px;background:var(--c);box-shadow:0 0 8px 2px var(--c);animation:twinkle 4.2s ease-in-out infinite alternate;animation-delay:var(--d)}
+@keyframes twinkle{0%{opacity:1}100%{opacity:.35;box-shadow:0 0 3px 0 var(--c)}}
 .bed-wrap{position:relative;justify-self:center;line-height:0}
 #bed{display:block;touch-action:none;max-width:100%}
 
 .overlay{position:absolute;inset:0;display:grid;place-items:center;background:var(--scrim);padding:16px;line-height:1.45;overflow:auto}
-.ov-card{display:grid;gap:12px;justify-items:center;text-align:center;max-width:460px}
-.ov-eyebrow{font:500 12px/1.35 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--safety)}
+.ov-card{display:grid;gap:12px;justify-items:center;text-align:center;max-width:470px}
+.ov-eyebrow{font:500 12px/1.35 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
 .ov-card h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(28px,4.2vw,46px);line-height:1;letter-spacing:.02em;text-wrap:balance}
 .ov-card p{margin:0;font-size:17px;max-width:44ch}
 .ov-card .keys{font-size:14px;color:var(--ink-dim)}
@@ -89,52 +95,57 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 .stats div{background:var(--panel);padding:8px 10px;display:grid;gap:2px}
 .stats dt{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
 .stats dd{margin:0;font:500 22px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
-.badge{font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;background:var(--safety);color:var(--safety-ink);padding:6px 10px;border-radius:3px}
+.badge{font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;background:var(--gold);color:var(--gold-ink);padding:6px 10px;border-radius:3px}
 .last-msg{color:var(--ink-dim)}
 @media (max-width:420px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-/* dymki SMS od klienta */
+/* SMS-y od klienta */
 .bubbles{position:absolute;inset:0;pointer-events:none;line-height:1.25;overflow:visible}
 .bubble{position:absolute;transform:translate(-50%,-100%)}
 .bubble.below{transform:translate(-50%,0)}
-.bubble-card{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:7px 13px 8px;box-shadow:0 8px 22px rgba(0,0,0,.4);white-space:nowrap;animation:bubbleIn .45s cubic-bezier(.2,.7,.2,1) both}
+.bubble-card{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:7px 13px 8px;box-shadow:0 8px 22px rgba(0,0,0,.4);white-space:nowrap;animation:bubbleIn .5s cubic-bezier(.2,.7,.2,1) both}
 .bubble-card::after{content:"";position:absolute;left:calc(50% + var(--tail,0px));bottom:-5px;width:12px;height:12px;background:inherit;transform:translateX(-50%) rotate(45deg);border-radius:2px}
 .bubble.below .bubble-card::after{bottom:auto;top:-5px}
 .bubble-who{display:block;font:500 10px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim)}
 .bubble-text{display:block;font-weight:700;font-size:18px}
-.bubble.ok .bubble-card{background:var(--safety);color:var(--safety-ink)}
-.bubble.ok .bubble-who{color:var(--safety-ink)}
-.bubble.out .bubble-card{animation:bubbleOut .5s ease forwards}
+.bubble.ok .bubble-card{background:var(--gold);color:var(--gold-ink)}
+.bubble.ok .bubble-who{color:var(--gold-ink)}
+.bubble.out .bubble-card{animation:bubbleOut .55s ease forwards}
 @keyframes bubbleIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
 @keyframes bubbleOut{from{opacity:1}to{opacity:0;transform:translateY(-6px)}}
 
-.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);font-family:var(--f-display);font-size:clamp(26px,5.5vw,54px);line-height:1.1;color:var(--safety);border:3px solid var(--safety);background:rgba(20,24,28,.6);padding:4px 18px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
-.stamp.go{animation:stamp 1.45s ease forwards}
-@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1.08)}20%{opacity:1;transform:translate(-50%,-50%) rotate(-7deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1)}}
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);font-family:var(--f-display);font-size:clamp(26px,5.5vw,54px);line-height:1.1;color:var(--gold);border:3px solid var(--gold);background:rgba(16,32,30,.62);padding:4px 18px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
+.stamp.red{color:#ff8d95;border-color:#ff8d95}
+.stamp.go{animation:stamp 1.6s ease forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1.06)}22%{opacity:1;transform:translate(-50%,-50%) rotate(-7deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1)}}
 
 /* sterowanie dotykowe */
 .pad{display:none;grid-template-columns:repeat(3,60px);grid-template-rows:repeat(2,48px);gap:6px;justify-content:center}
 @media (pointer:coarse){.pad{display:grid}}
-.pad button{font:600 20px/1 var(--f-body);background:var(--enamel);color:var(--ink);border:1px solid var(--line);border-radius:6px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.pad button{font:600 20px/1 var(--f-body);background:var(--night);color:var(--ink);border:1px solid var(--line);border-radius:6px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .pad button:active{background:var(--line)}
 .pad .up{grid-column:2;grid-row:1}
 .pad .left{grid-column:1;grid-row:2}
 .pad .down{grid-column:2;grid-row:2}
 .pad .right{grid-column:3;grid-row:2}
 
-.inbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px 6px;display:grid;gap:8px;align-content:start;min-width:0}
-.inbox-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.inbox h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
-.count{font:500 13px/1.4 var(--f-mono);background:var(--safety);color:var(--safety-ink);border-radius:999px;padding:1px 9px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums}
-.log{list-style:none;margin:0;padding:0;max-height:min(64vh,560px);overflow:auto}
-@media (max-width:1000px){.log{max-height:220px}}
+.side{display:grid;gap:14px;align-content:start;min-width:0}
+@media (max-width:1000px){.side{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));align-items:start}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.panel h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+.count{font:500 13px/1.4 var(--f-mono);background:var(--gold);color:var(--gold-ink);border-radius:999px;padding:1px 9px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+#proj{display:block;width:100%;height:310px;border-radius:3px;background:var(--paper)}
+.inbox{padding-bottom:6px}
+.log{list-style:none;margin:0;padding:0;max-height:min(40vh,330px);overflow:auto}
+@media (max-width:1000px){.log{max-height:300px}}
 .log li{padding:10px 0;border-top:1px solid var(--line);display:grid;gap:2px}
 .log li:first-child{border-top:0}
-.log li.new{animation:logIn .9s ease}
-@keyframes logIn{from{background:rgba(242,193,46,.12)}to{background:transparent}}
+.log li.new{animation:logIn 1s ease}
+@keyframes logIn{from{background:rgba(233,185,73,.12)}to{background:transparent}}
 .log-meta{font:400 11px/1.4 var(--f-mono);color:var(--ink-dim);display:flex;gap:10px;flex-wrap:wrap}
 .log-text{margin:0;font-weight:700;font-size:18px;line-height:1.25}
-.log li.ok .log-text{color:var(--safety)}
+.log li.ok .log-text{color:var(--gold)}
 .log-note{margin:0;font-size:14px;color:var(--ink-dim)}
 .log-empty{margin:0;color:var(--ink-dim);font-size:15px;padding-bottom:10px;max-width:40ch}
 
@@ -143,15 +154,17 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 
 @media (prefers-reduced-motion:reduce){
   .bubble-card,.bubble.out .bubble-card,.stamp.go,.log li.new,.ro dd.flash{animation-duration:.01ms}
+  .lights i{animation:none}
 }
 </style>
 
+<canvas id="snow" aria-hidden="true"></canvas>
 <div class="app">
   <header class="top">
     <div class="brand">
-      <span class="brand-eyebrow">Stół roboczy 3000 × 1500 mm · stal S235, 3 mm</span>
+      <span class="brand-eyebrow" id="eyebrow">Edycja świąteczna · stół 3000 × 1500 mm</span>
       <h1>Laser <span>Snake</span></h1>
-      <p>Prowadź głowicę po lamelach i wycinaj detale. Każdy detal jedzie do klienta, a klient zawsze ma uwagi.</p>
+      <p>Klient zamówił choinkę z blachy. Wycinaj piętra, bombki i gwiazdkę, a projekt złoży się obok stołu. Do każdego szczegółu klient ma uwagi.</p>
     </div>
     <div class="top-actions">
       <button class="btn" id="btnPause" type="button" disabled>Pauza</button>
@@ -162,23 +175,24 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   <dl class="hud" aria-label="Odczyty maszyny">
     <div class="ro ro-pos"><dt>Pozycja głowicy, mm</dt><dd><span><b>X</b><span id="hudX">0000.0</span></span><span><b>Y</b><span id="hudY">0000.0</span></span></dd></div>
     <div class="ro"><dt>Posuw, m/min</dt><dd id="hudFeed">40</dd></div>
-    <div class="ro"><dt>Detale</dt><dd id="hudParts">0</dd></div>
+    <div class="ro"><dt>Choinki</dt><dd id="hudTrees">0</dd></div>
     <div class="ro"><dt>Reklamacje</dt><dd id="hudComplaints">0</dd></div>
     <div class="ro"><dt>Punkty</dt><dd><span id="hudScore">0</span><small>rekord <span id="hudBest">0</span></small></dd></div>
   </dl>
 
   <main class="work">
     <section class="bed" id="bedBox" aria-label="Stół roboczy lasera">
+      <div class="lights" id="lights" aria-hidden="true"></div>
       <div class="bed-wrap" id="bedWrap">
-        <canvas id="bed" role="img" aria-label="Stół roboczy z lamelami, głowica tnąca i detal do wycięcia"></canvas>
+        <canvas id="bed" role="img" aria-label="Stół roboczy z lamelami, głowica tnąca i element choinki do wycięcia"></canvas>
         <div class="bubbles" id="bubbles" aria-hidden="true"></div>
-        <div class="stamp" id="stamp" hidden>Pilne! Na wczoraj</div>
+        <div class="stamp" id="stamp" hidden></div>
 
         <div class="overlay" id="ovStart">
           <div class="ov-card">
-            <span class="ov-eyebrow">Zlecenie nr 1530 · gwiazdki i inne drobiazgi</span>
+            <span class="ov-eyebrow" id="startEyebrow">Zamówienie: choinka z blachy · termin: Wigilia</span>
             <h2>Gotowy do cięcia</h2>
-            <p>Najedź głowicą na detal, żeby go wyciąć. Nie wyjeżdżaj poza stół i nie tnij po własnym konturze.</p>
+            <p>Najedź głowicą na element, żeby go wyciąć. Nie wyjeżdżaj poza stół i nie tnij po własnej girlandzie.</p>
             <button class="btn btn-go" id="btnStart" type="button">Start cięcia</button>
             <p class="keys"><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> lub <kbd>WASD</kbd> · <kbd>Spacja</kbd> pauza · na telefonie przesuń palcem po stole</p>
             <p class="keys" id="startBest" hidden></p>
@@ -197,16 +211,16 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
         <div class="overlay" id="ovOver" hidden>
           <div class="ov-card">
             <span class="ov-eyebrow" id="overReason">Alarm</span>
-            <h2 id="overTitle">Zlecenie przerwane</h2>
+            <h2 id="overTitle">Choinka nie zdąży na święta</h2>
             <span class="badge" id="overRecord" hidden>Nowy rekord</span>
             <dl class="stats">
-              <div><dt>Detale</dt><dd id="ovParts">0</dd></div>
+              <div><dt>Choinki</dt><dd id="ovTrees">0</dd></div>
               <div><dt>Reklamacje</dt><dd id="ovCompl">0</dd></div>
               <div><dt>Punkty</dt><dd id="ovScore">0</dd></div>
               <div><dt>Rekord</dt><dd id="ovBest">0</dd></div>
             </dl>
             <p class="last-msg" id="overLast"></p>
-            <button class="btn btn-go" id="btnRestart" type="button">Nowe zlecenie</button>
+            <button class="btn btn-go" id="btnRestart" type="button">Nowe zamówienie</button>
           </div>
         </div>
       </div>
@@ -219,13 +233,22 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
       </div>
     </section>
 
-    <aside class="inbox" aria-labelledby="inboxTitle">
-      <div class="inbox-head">
-        <h2 id="inboxTitle">Wiadomości od klienta</h2>
-        <span class="count" id="inboxCount" title="Liczba reklamacji">0</span>
-      </div>
-      <ol class="log" id="log" aria-live="polite"></ol>
-      <p class="log-empty" id="logEmpty">Pusto. Wytnij pierwszy detal, a klient na pewno się odezwie.</p>
+    <aside class="side">
+      <section class="panel" aria-labelledby="projTitle">
+        <div class="panel-head">
+          <h2 id="projTitle">Projekt choinki</h2>
+          <span class="count" id="projProgress" title="Wycięte elementy">0/9</span>
+        </div>
+        <canvas id="proj" role="img" aria-label="Rysunek projektu choinki z wymiarami, zmieniany po uwagach klienta"></canvas>
+      </section>
+      <section class="panel inbox" aria-labelledby="inboxTitle">
+        <div class="panel-head">
+          <h2 id="inboxTitle">Wiadomości od klienta</h2>
+          <span class="count" id="inboxCount" title="Liczba reklamacji">0</span>
+        </div>
+        <ol class="log" id="log" aria-live="polite"></ol>
+        <p class="log-empty" id="logEmpty">Pusto. Wytnij pierwszy element choinki, a klient na pewno się odezwie.</p>
+      </section>
     </aside>
   </main>
 
@@ -241,11 +264,11 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 (() => {
   'use strict';
 
-  /* ===== Teksty klienta. Dopisz własne: text = treść, fx = efekt w grze ===== */
+  /* ===== Uwagi klienta do projektu choinki. fx = co zmieniają ===== */
   const MESSAGES = [
-    { text: 'Gwiazdka za mała', fx: 'bigger',  starOnly: true },
-    { text: 'Gwiazdka za duża', fx: 'smaller', starOnly: true },
-    { text: 'Kolory nie takie', fx: 'color' },
+    { text: 'Gwiazdka za mała', fx: 'starBigger',  needs: 'star' },
+    { text: 'Gwiazdka za duża', fx: 'starSmaller', needs: 'star' },
+    { text: 'Kolory nie takie', fx: 'color',       needs: 'bauble' },
     { text: 'Brak proporcji',   fx: 'stretch' },
     { text: 'Trochę w prawo',   fx: 'right' },
     { text: 'Trochę w lewo',    fx: 'left' },
@@ -253,33 +276,35 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     { text: 'Za duża',          fx: 'smaller' },
     { text: 'Kiedy będą?',      fx: 'rush' },
   ];
-  /* Rzadki przypadek: klient przyjmuje detal bez uwag (+50 pkt) */
+  /* Rzadki przypadek: klient przyjmuje element bez uwag (+50 pkt) */
   const ACCEPT = { text: 'Może być.', fx: 'ok' };
   const ACCEPT_CHANCE = 0.06;
 
+  /* Z czego składa się choinka */
   const PARTS = [
-    { type: 'star',   name: 'gwiazdka',  weight: 6 },
-    { type: 'washer', name: 'podkładka', weight: 2 },
-    { type: 'gear',   name: 'zębatka',   weight: 2 },
+    { type: 'tier',   name: 'piętro choinki', need: 3 },
+    { type: 'bauble', name: 'bombka',         need: 5 },
+    { type: 'star',   name: 'gwiazdka',       need: 1 },
   ];
+  const TOTAL = PARTS.reduce((a, p) => a + p.need, 0);
   const RAL = [
-    ['RAL 3020', '#c1121c'], ['RAL 5015', '#2271b3'], ['RAL 6018', '#57a639'],
-    ['RAL 1023', '#f0ca00'], ['RAL 2004', '#e75b12'], ['RAL 9016', '#f1f0ea'], ['RAL 4006', '#923e8c'],
+    ['RAL 3020', '#c1121c'], ['RAL 5015', '#2271b3'], ['RAL 1036', '#a78a3c'], ['RAL 4006', '#923e8c'],
+    ['RAL 9016', '#f1f0ea'], ['RAL 2004', '#e75b12'], ['RAL 6018', '#57a639'],
   ];
-  const DISTORT = [[1.55, 0.72], [0.66, 1.42], [1.3, 0.8]];
-  /* barwy nalotowe stali: od żaru przy głowicy do wystygłego końca */
-  const TEMPER = [[255,246,220],[255,170,70],[232,196,110],[186,122,62],[140,82,146],[66,112,184],[112,126,138]];
+  const GOLD = '#e9b949', GREEN = '#2f7a4b', TRUNK = '#7a5232';
+  const DISTORT = [[1.4, 0.78], [0.72, 1.3], [1.22, 0.86]];
+  const BULBS = ['#ff4d5a', '#ffc93c', '#4cd47a', '#5aa9ff'];
   const SLAG = ['rgba(92,62,34,.85)', 'rgba(60,44,30,.9)', 'rgba(48,70,98,.7)', 'rgba(120,96,58,.75)'];
 
   const CELL_MM = 100;
   const BASE_TICK = 150, MIN_TICK = 62;
   const RULER = 22, EDGE = 4;
-  const BEST_KEY = 'laser-snake-best', MUTE_KEY = 'laser-snake-mute';
+  const BEST_KEY = 'laser-snake-xmas-best', MUTE_KEY = 'laser-snake-mute';
   const TAU = Math.PI * 2;
   const MONO = '"IBM Plex Mono", ui-monospace, Consolas, monospace';
   const REASONS = {
-    wall: { eyebrow: 'Alarm: głowica poza polem roboczym', title: 'Zlecenie przerwane' },
-    self: { eyebrow: 'Alarm: kolizja z wyciętym konturem', title: 'Zlecenie przerwane' },
+    wall: { eyebrow: 'Alarm: głowica poza polem roboczym', title: 'Choinka nie zdąży na święta' },
+    self: { eyebrow: 'Alarm: kolizja z własną girlandą', title: 'Choinka nie zdąży na święta' },
     full: { eyebrow: 'Arkusz wykorzystany w 100%', title: 'Stół pełny' },
   };
 
@@ -289,18 +314,21 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 
   const $ = (id) => document.getElementById(id);
   const canvas = $('bed'), ctx = canvas.getContext('2d');
+  const proj = $('proj'), pctx = proj.getContext('2d');
+  const snowCv = $('snow'), sctx = snowCv.getContext('2d');
   const bedBox = $('bedBox'), wrap = $('bedWrap'), bubbles = $('bubbles'), stamp = $('stamp');
   const ovStart = $('ovStart'), ovPause = $('ovPause'), ovOver = $('ovOver');
-  const hud = { x: $('hudX'), y: $('hudY'), feed: $('hudFeed'), parts: $('hudParts'), compl: $('hudComplaints'), score: $('hudScore'), best: $('hudBest') };
-  const logEl = $('log'), logEmpty = $('logEmpty'), inboxCount = $('inboxCount');
+  const hud = { x: $('hudX'), y: $('hudY'), feed: $('hudFeed'), trees: $('hudTrees'), compl: $('hudComplaints'), score: $('hudScore'), best: $('hudBest') };
+  const logEl = $('log'), logEmpty = $('logEmpty'), inboxCount = $('inboxCount'), projProgress = $('projProgress');
   const btnSound = $('btnSound'), btnPause = $('btnPause');
 
   let cols = 30, rows = 15, cell = 24, ox = RULER, oy = RULER, cw = 0, ch = 0, dpr = 1, bedLayer = null;
+  let pw = 260, ph = 310;
   let snake = [], prev = [], dir = { x: 1, y: 0 }, queue = [], food = null;
-  let spec = { scale: 1, sx: 1, sy: 1, ral: null };
+  let tree = null, treeFlash = null, trees = 0;
   let state = 'ready', tickMs = BASE_TICK, lastTick = 0, pauseT = 0, overTimer = 0, overAt = 0;
   let parts = 0, complaints = 0, score = 0, lastMsgText = '';
-  let particles = [], sparkAcc = 0, headPx = null;
+  let particles = [], sparkAcc = 0, headPx = null, tableSnow = [], pageSnow = [];
   let best = 0, muted = false;
   try {
     best = parseInt(localStorage.getItem(BEST_KEY), 10) || 0;
@@ -308,11 +336,14 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   } catch (e) { /* brak dostępu do pamięci przeglądarki */ }
 
   const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const easeOut = (t) => 1 - Math.pow(1 - t, 3);
   const pct = (v) => Math.round(v * 100) + '%';
   const feed = () => 6000 / tickMs; // 100 mm na takt -> m/min
   const mm = (i) => ((i + 0.5) * CELL_MM).toFixed(1).padStart(6, '0');
   const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+  const round10 = (v) => Math.round(v / 10) * 10;
+  const hhmm = () => new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
 
   function mulberry32(a) {
     return function () {
@@ -323,6 +354,25 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     };
   }
 
+  /* ===== Ile do Wigilii ===== */
+  function wigiliaText() {
+    const n = new Date(), y = n.getFullYear();
+    const today = new Date(y, n.getMonth(), n.getDate());
+    if (today >= new Date(y, 11, 24) && today <= new Date(y, 11, 26)) return 'Wesołych Świąt!';
+    let target = new Date(y, 11, 24);
+    if (today > new Date(y, 11, 26)) target = new Date(y + 1, 11, 24);
+    const d = Math.round((target - today) / 86400000);
+    return 'do Wigilii ' + d + (d === 1 ? ' dzień' : ' dni');
+  }
+
+  /* ===== Projekt choinki ===== */
+  function newTree(no) {
+    const base = { scale: 1, sx: 1, sy: 1, star: 1, off: 0 };
+    return { no, have: { tier: 0, bauble: 0, star: 0 }, rev: 0, target: { ...base }, cur: { ...base }, ral: RAL[0] };
+  }
+  const haveCount = (t) => t.have.tier + t.have.bauble + t.have.star;
+  const treeDone = (t) => PARTS.every((p) => t.have[p.type] >= p.need);
+
   /* ===== Rozmiar planszy ===== */
   function isPortrait() { return window.innerWidth < 760 && window.innerHeight > window.innerWidth * 1.15; }
 
@@ -330,7 +380,7 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     dpr = Math.min(2, window.devicePixelRatio || 1);
     const cs = getComputedStyle(bedBox);
     const availW = bedBox.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const reserve = rows > cols ? 175 : 245;
+    const reserve = rows > cols ? 190 : 260;
     const availH = Math.max(220, window.innerHeight - reserve);
     const c = Math.floor(Math.min((availW - RULER - EDGE) / cols, (availH - RULER - EDGE) / rows));
     cell = Math.max(8, Math.min(34, c));
@@ -339,6 +389,24 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
     canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
     renderBed();
+    initTableSnow();
+    pw = Math.max(200, proj.clientWidth || 260); ph = proj.clientHeight || 310;
+    proj.width = Math.round(pw * dpr); proj.height = Math.round(ph * dpr);
+    snowCv.width = Math.round(window.innerWidth * dpr); snowCv.height = Math.round(window.innerHeight * dpr);
+    buildLights();
+  }
+
+  function buildLights() {
+    const el = $('lights');
+    const n = Math.max(8, Math.min(40, Math.floor(el.clientWidth / 34)));
+    if (el.childElementCount === n) return;
+    el.textContent = '';
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement('i');
+      b.style.setProperty('--c', BULBS[i % BULBS.length]);
+      b.style.setProperty('--d', (-(i * 1.37) % 4.2).toFixed(2) + 's');
+      el.append(b);
+    }
   }
 
   /* ===== Stół: lamele, żużel, linijki (rysowane raz) ===== */
@@ -348,33 +416,27 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     const g = c.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     const bw = cols * cell, bh = rows * cell;
-    g.fillStyle = '#151c22'; g.fillRect(0, 0, cw, ch);
+    g.fillStyle = '#121d1c'; g.fillRect(0, 0, cw, ch);
     const pit = g.createLinearGradient(0, oy, 0, oy + bh);
-    pit.addColorStop(0, '#10161a'); pit.addColorStop(1, '#0a0e11');
+    pit.addColorStop(0, '#0f1619'); pit.addColorStop(1, '#0a0f11');
     g.fillStyle = pit; g.fillRect(ox, oy, bw, bh);
 
     const rnd = mulberry32(3015);
     const vertical = cols >= rows; // lamele w poprzek dłuższej osi stołu
-
-    g.strokeStyle = 'rgba(150,170,186,0.07)'; g.lineWidth = 1;
+    g.strokeStyle = 'rgba(150,180,186,0.07)'; g.lineWidth = 1;
     if (vertical) {
       for (let y = 1; y < rows; y++) { const yy = oy + y * cell + 0.5; g.beginPath(); g.moveTo(ox, yy); g.lineTo(ox + bw, yy); g.stroke(); }
     } else {
       for (let x = 1; x < cols; x++) { const xx = ox + x * cell + 0.5; g.beginPath(); g.moveTo(xx, oy); g.lineTo(xx, oy + bh); g.stroke(); }
     }
-
     const bar = (p, w, color) => {
       g.fillStyle = color;
       if (vertical) g.fillRect(p - w / 2, oy, w, bh); else g.fillRect(ox, p - w / 2, bw, w);
     };
-    const count = vertical ? cols : rows;
-    const len = vertical ? bh : bw;
-    const step = Math.max(4, cell / 3);
+    const count = vertical ? cols : rows, len = vertical ? bh : bw, step = Math.max(4, cell / 3);
     for (let i = 1; i < count; i++) {
       const p = (vertical ? ox : oy) + i * cell;
-      bar(p + 1.5, 3, '#04070a');
-      bar(p, 2, '#59646e');
-      bar(p - 0.6, 0.8, '#8c98a2');
+      bar(p + 1.5, 3, '#04070a'); bar(p, 2, '#59646e'); bar(p - 0.6, 0.8, '#8c98a2');
       for (let s = step / 2; s < len; s += step) {
         const a = vertical ? p : ox + s, b = vertical ? oy + s : p;
         g.fillStyle = '#a8b3bc'; g.fillRect(a - 1, b - 1, 2, 2);
@@ -387,16 +449,12 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     }
     g.strokeStyle = '#4b5a66'; g.lineWidth = 1; g.strokeRect(ox - 0.5, oy - 0.5, bw + 1, bh + 1);
 
-    // linijki w mm
-    g.font = '500 9px ' + MONO; g.fillStyle = '#8e9caa'; g.strokeStyle = '#6f7d89';
+    g.font = '500 9px ' + MONO; g.fillStyle = '#8ea4a2'; g.strokeStyle = '#6f8584';
     const every = cell * 5 >= 34 ? 5 : 10;
     for (let i = 0; i <= cols; i++) {
       const x = ox + i * cell + 0.5, major = i % 5 === 0;
       g.beginPath(); g.moveTo(x, oy - (major ? 8 : 4)); g.lineTo(x, oy - 1); g.stroke();
-      if (i > 0 && i % every === 0) {
-        g.textAlign = i === cols ? 'right' : 'center'; g.textBaseline = 'top';
-        g.fillText(String(i * CELL_MM), x, 2);
-      }
+      if (i > 0 && i % every === 0) { g.textAlign = i === cols ? 'right' : 'center'; g.textBaseline = 'top'; g.fillText(String(i * CELL_MM), x, 2); }
     }
     for (let j = 0; j <= rows; j++) {
       const y = oy + j * cell + 0.5, major = j % 5 === 0;
@@ -407,17 +465,60 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
         g.fillText(String(j * CELL_MM), 0, 0); g.restore();
       }
     }
-    g.textAlign = 'left'; g.textBaseline = 'top'; g.fillStyle = '#6f7d89'; g.fillText('mm', 2, 3);
+    g.textAlign = 'left'; g.textBaseline = 'top'; g.fillStyle = '#6f8584'; g.fillText('mm', 2, 3);
     bedLayer = c;
+  }
+
+  /* ===== Śnieg ===== */
+  function initTableSnow() {
+    const n = reduceMotion ? 0 : Math.round(cols * rows / 9);
+    tableSnow = [];
+    for (let i = 0; i < n; i++) tableSnow.push(newFlake(true));
+  }
+  function newFlake(anywhere) {
+    return { x: ox + Math.random() * cols * cell, y: anywhere ? oy + Math.random() * rows * cell : oy - 4,
+             r: 0.7 + Math.random() * 1.4, v: (8 + Math.random() * 14) * cell / 24, ph: Math.random() * TAU };
+  }
+  function updateTableSnow(dt, now) {
+    for (const f of tableSnow) {
+      f.y += f.v * dt; f.x += Math.sin(now / 1400 + f.ph) * 6 * dt;
+      let reset = f.y > oy + rows * cell;
+      if (!reset && headPx && Math.abs(f.x - headPx[0]) < cell && Math.abs(f.y - headPx[1]) < cell) reset = true; // topnieje przy głowicy
+      if (reset) Object.assign(f, newFlake(false));
+    }
+  }
+  function drawTableSnow() {
+    ctx.fillStyle = 'rgba(243,240,231,0.75)';
+    for (const f of tableSnow) { ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, TAU); ctx.fill(); }
+  }
+  function initPageSnow() {
+    const n = Math.round(Math.min(110, window.innerWidth * window.innerHeight / 14000));
+    pageSnow = [];
+    for (let i = 0; i < n; i++) pageSnow.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, r: 0.8 + Math.random() * 2, v: 12 + Math.random() * 22, ph: Math.random() * TAU, a: 0.25 + Math.random() * 0.45 });
+  }
+  function drawPageSnow(dt, now) {
+    const W = window.innerWidth, H = window.innerHeight;
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0); sctx.clearRect(0, 0, W, H);
+    for (const f of pageSnow) {
+      if (!reduceMotion) {
+        f.y += f.v * dt; f.x += Math.sin(now / 1800 + f.ph) * 10 * dt;
+        if (f.y > H + 4) { f.y = -4; f.x = Math.random() * W; }
+      }
+      sctx.globalAlpha = f.a; sctx.fillStyle = '#f3f0e7';
+      sctx.beginPath(); sctx.arc(f.x, f.y, f.r, 0, TAU); sctx.fill();
+    }
+    sctx.globalAlpha = 1;
   }
 
   /* ===== Stan gry ===== */
   function onSnake(x, y) { for (const s of snake) if (s.x === x && s.y === y) return true; return false; }
 
   function pickPart() {
-    let r = Math.random() * PARTS.reduce((a, p) => a + p.weight, 0);
-    for (const p of PARTS) { r -= p.weight; if (r < 0) return p; }
-    return PARTS[0];
+    const needed = PARTS.filter((p) => tree.have[p.type] < p.need);
+    const pool = needed.length ? needed : PARTS;
+    let r = Math.random() * pool.reduce((a, p) => a + Math.max(1, p.need - tree.have[p.type]), 0);
+    for (const p of pool) { r -= Math.max(1, p.need - tree.have[p.type]); if (r < 0) return p; }
+    return pool[0];
   }
 
   function spawnFood(now) {
@@ -429,8 +530,10 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     }
     if (!free.length) { food = null; return false; }
     const [x, y] = pick(free);
-    const part = pickPart();
-    food = { x, y, type: part.type, name: part.name, scale: spec.scale, sx: spec.sx, sy: spec.sy, ral: spec.ral,
+    const part = pickPart(), T = tree.target;
+    const scale = part.type === 'star' ? clamp(T.star * T.scale, 0.6, 1.7) : clamp(T.scale, 0.7, 1.4);
+    const color = part.type === 'star' ? ['złoto', GOLD] : part.type === 'tier' ? ['RAL 6005', GREEN] : tree.ral;
+    food = { x, y, type: part.type, name: part.name, scale, sx: T.sx, sy: T.sy, color,
              born: now, from: null, shiftT: 0, note: '', noteT: 0, pendingShift: null };
     return true;
   }
@@ -446,8 +549,8 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
       snake = [0, 1, 2, 3].map((i) => ({ x: x - i, y })); dir = { x: 1, y: 0 };
     }
     prev = snake.map((p) => ({ x: p.x, y: p.y }));
-    queue = []; spec = { scale: 1, sx: 1, sy: 1, ral: null };
-    tickMs = BASE_TICK; parts = 0; complaints = 0; score = 0; lastMsgText = '';
+    queue = []; tickMs = BASE_TICK; parts = 0; complaints = 0; score = 0; lastMsgText = '';
+    trees = 0; tree = newTree(1); treeFlash = null;
     particles = []; headPx = null;
     bubbles.textContent = ''; logEl.textContent = ''; logEmpty.hidden = false;
     spawnFood(performance.now());
@@ -502,33 +605,45 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     updateCoords();
   }
 
-  function pickMessage(type) {
-    const pool = MESSAGES.filter((m) => (!m.starOnly || type === 'star') && m.text !== lastMsgText);
+  function pickMessage() {
+    const pool = MESSAGES.filter((m) => (!m.needs || tree.have[m.needs] > 0) && m.text !== lastMsgText);
     return pick(pool.length ? pool : MESSAGES);
   }
 
+  /* uwaga klienta zmienia projekt (i wygląd kolejnych elementów na stole) */
   function applyEffect(msg) {
+    const T = tree.target;
+    const size = () => 'szer. ' + round10(600 * T.scale * T.sx) + ' mm, wys. ' + round10(900 * T.scale * T.sy) + ' mm';
     switch (msg.fx) {
+      case 'starBigger':
+        T.star = Math.min(1.9, Math.round((T.star + 0.3) * 100) / 100);
+        return 'gwiazdka powiększona do ' + pct(T.star);
+      case 'starSmaller':
+        T.star = Math.max(0.5, Math.round((T.star - 0.3) * 100) / 100);
+        return 'gwiazdka zmniejszona do ' + pct(T.star);
       case 'bigger':
-        spec.scale = Math.min(1.6, Math.round((spec.scale + 0.3) * 100) / 100);
-        return 'następny detal w skali ' + pct(spec.scale);
+        T.scale = Math.min(1.35, Math.round((T.scale + 0.15) * 100) / 100);
+        return 'choinka powiększona: ' + size();
       case 'smaller':
-        spec.scale = Math.max(0.5, Math.round((spec.scale - 0.3) * 100) / 100);
-        return 'następny detal w skali ' + pct(spec.scale);
-      case 'color': {
-        spec.ral = pick(RAL.filter((r) => r !== spec.ral));
-        return 'przemalowano na ' + spec.ral[0];
-      }
+        T.scale = Math.max(0.7, Math.round((T.scale - 0.15) * 100) / 100);
+        return 'choinka zmniejszona: ' + size();
+      case 'color':
+        tree.ral = pick(RAL.filter((r) => r !== tree.ral));
+        return 'bombki przemalowane na ' + tree.ral[0];
       case 'stretch': {
-        const d = pick(DISTORT.filter((v) => v[0] !== spec.sx));
-        spec.sx = d[0]; spec.sy = d[1];
-        return 'skala X ' + pct(d[0]) + ', Y ' + pct(d[1]);
+        const d = pick(DISTORT.filter((v) => v[0] !== T.sx));
+        T.sx = d[0]; T.sy = d[1];
+        return 'nowe proporcje: ' + size();
       }
-      case 'right': return 'następny detal przesunięty o +100 mm w X';
-      case 'left': return 'następny detal przesunięty o −100 mm w X';
+      case 'right':
+      case 'left': {
+        const s = msg.fx === 'right' ? 1 : -1;
+        T.off = clamp(T.off + s * 50, -200, 200);
+        return 'gwiazdka przesunięta o 50 mm w ' + (s > 0 ? 'prawo' : 'lewo') + ', następny element o 100 mm';
+      }
       case 'rush':
         tickMs = Math.max(MIN_TICK, tickMs - 10);
-        showStamp(); flash(hud.feed);
+        showStamp('Na Wigilię!', 'red'); flash(hud.feed);
         return 'posuw podniesiony do ' + Math.round(feed()) + ' m/min';
     }
     return '';
@@ -537,8 +652,9 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   function eat(now) {
     const eaten = food;
     const cx = ox + (eaten.x + 0.5) * cell, cy = oy + (eaten.y + 0.5) * cell;
-    burst(cx, cy, eaten.ral ? eaten.ral[1] : '#dfe6eb', reduceMotion ? 8 : 18);
+    burst(cx, cy, eaten.color[1], reduceMotion ? 8 : 18);
     parts++;
+    tree.have[eaten.type] = Math.min(PARTS.find((p) => p.type === eaten.type).need, tree.have[eaten.type] + 1);
     score += 10 + Math.round((BASE_TICK - tickMs) / 3);
     if (parts % 4 === 0) tickMs = Math.max(MIN_TICK, tickMs - 4);
     sfx.eat();
@@ -546,15 +662,24 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     const accepted = parts > 2 && Math.random() < ACCEPT_CHANCE;
     let msg, note;
     if (accepted) { msg = ACCEPT; score += 50; note = 'akceptacja bez uwag · +50 pkt'; }
-    else { msg = pickMessage(eaten.type); complaints++; note = applyEffect(msg); }
+    else { msg = pickMessage(); complaints++; tree.rev++; note = applyEffect(msg); }
     lastMsgText = msg.text;
+
+    showBubble(msg.text, eaten.x, eaten.y, accepted);
+    addLog(msg.text, eaten.name, note, accepted ? 'ok' : '');
+    if (accepted) sfx.ok(); else sfx.msg();
+
+    if (treeDone(tree)) {
+      trees++; score += 100;
+      treeFlash = { until: now + 2200, tree };
+      addLog('Choinka nr ' + trees + ' oddana', 'rew. ' + tree.rev, '+100 pkt · klient zamawia następną', 'ok');
+      tree = newTree(trees + 1);
+      showStamp('Choinka gotowa!', '');
+      sfx.jingle();
+    }
 
     const ok = spawnFood(now);
     if (food && (msg.fx === 'right' || msg.fx === 'left')) food.pendingShift = { dx: msg.fx === 'right' ? 1 : -1, at: now + 650 };
-
-    showBubble(msg.text, eaten.x, eaten.y, accepted);
-    addLog(msg.text, eaten.name, note, accepted);
-    if (accepted) sfx.ok(); else sfx.msg();
     updateHud();
     if (!ok) gameOver('full');
   }
@@ -578,7 +703,7 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     const r = REASONS[reason] || REASONS.wall;
     $('overReason').textContent = r.eyebrow;
     $('overTitle').textContent = r.title;
-    $('ovParts').textContent = parts; $('ovCompl').textContent = complaints;
+    $('ovTrees').textContent = trees; $('ovCompl').textContent = complaints;
     $('ovScore').textContent = score; $('ovBest').textContent = best;
     $('overRecord').hidden = !isRecord;
     $('overLast').textContent = lastMsgText
@@ -595,10 +720,11 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 
   /* ===== Interfejs ===== */
   function updateHud() {
-    hud.parts.textContent = parts; hud.compl.textContent = complaints;
+    hud.trees.textContent = trees; hud.compl.textContent = complaints;
     hud.score.textContent = score; hud.best.textContent = best;
     hud.feed.textContent = Math.round(feed());
     inboxCount.textContent = complaints;
+    projProgress.textContent = haveCount(tree) + '/' + TOTAL;
     const sb = $('startBest');
     sb.hidden = best <= 0; sb.textContent = 'Rekord na tym urządzeniu: ' + best + ' pkt';
   }
@@ -606,16 +732,18 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 
   function flash(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 
-  function showStamp() {
-    stamp.hidden = false; stamp.classList.remove('go'); void stamp.offsetWidth; stamp.classList.add('go');
-    clearTimeout(showStamp.t); showStamp.t = setTimeout(() => { stamp.hidden = true; }, 1500);
+  function showStamp(text, variant) {
+    stamp.textContent = text;
+    stamp.className = 'stamp' + (variant ? ' ' + variant : '');
+    stamp.hidden = false; void stamp.offsetWidth; stamp.classList.add('go');
+    clearTimeout(showStamp.t); showStamp.t = setTimeout(() => { stamp.hidden = true; }, 1650);
   }
 
   function showBubble(text, gx, gy, accepted) {
     const b = document.createElement('div'); b.className = 'bubble' + (accepted ? ' ok' : '');
     const card = document.createElement('div'); card.className = 'bubble-card';
     const who = document.createElement('span'); who.className = 'bubble-who';
-    who.textContent = 'Klient · ' + new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    who.textContent = 'Klient · projekt choinki · ' + hhmm();
     const t = document.createElement('span'); t.className = 'bubble-text'; t.textContent = text;
     card.append(who, t); b.append(card); bubbles.append(b);
     while (bubbles.children.length > 3) bubbles.firstElementChild.remove();
@@ -632,18 +760,17 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     b.style.top = (below ? oy + (gy + 1) * cell + 9 : topY - 7) + 'px';
     if (below) b.classList.add('below');
     b.style.setProperty('--tail', Math.max(-(w / 2 - 14), Math.min(w / 2 - 14, cx - left)) + 'px');
-    setTimeout(() => b.classList.add('out'), 2400);
-    setTimeout(() => b.remove(), 2950);
+    setTimeout(() => b.classList.add('out'), 2500);
+    setTimeout(() => b.remove(), 3100);
   }
 
-  function addLog(text, partName, note, accepted) {
+  function addLog(text, label, note, kind) {
     logEmpty.hidden = true;
-    const li = document.createElement('li'); li.className = 'new' + (accepted ? ' ok' : '');
+    const li = document.createElement('li'); li.className = 'new' + (kind ? ' ' + kind : '');
     const meta = document.createElement('div'); meta.className = 'log-meta';
-    const tm = document.createElement('span');
-    tm.textContent = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    const tm = document.createElement('span'); tm.textContent = hhmm();
     const pn = document.createElement('span');
-    pn.textContent = 'detal ' + String(parts).padStart(2, '0') + ' · ' + partName;
+    pn.textContent = kind === 'ok' && !note.startsWith('akceptacja') ? label : 'element ' + String(parts).padStart(2, '0') + ' · ' + label;
     meta.append(tm, pn);
     const p = document.createElement('p'); p.className = 'log-text'; p.textContent = text;
     li.append(meta, p);
@@ -675,9 +802,10 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     } catch (e) { /* bez dźwięku */ }
   }
   const sfx = {
-    eat() { tone(520, 0.09, 'square', 0.03, 0, 1040); },
-    msg() { tone(1318, 0.11, 'sine', 0.06, 0.14); tone(988, 0.17, 'sine', 0.06, 0.27); },
+    eat() { tone(1568, 0.12, 'triangle', 0.04, 0); tone(2093, 0.18, 'sine', 0.025, 0.03); },
+    msg() { tone(1318, 0.11, 'sine', 0.06, 0.16); tone(988, 0.17, 'sine', 0.06, 0.29); },
     ok() { tone(784, 0.1, 'sine', 0.06, 0.12); tone(1046, 0.1, 'sine', 0.06, 0.22); tone(1318, 0.22, 'sine', 0.06, 0.32); },
+    jingle() { [1046, 1318, 1568, 2093, 1568, 2093].forEach((f, i) => tone(f, 0.22, 'triangle', 0.05, 0.5 + i * 0.12)); },
     shift() { tone(300, 0.12, 'triangle', 0.05, 0, 420); },
     crash() { tone(180, 0.55, 'sawtooth', 0.06, 0, 45); tone(90, 0.4, 'square', 0.035, 0.05, 40); },
   };
@@ -730,38 +858,34 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     ctx.restore();
   }
 
-  /* ===== Rysowanie ===== */
-  function temper(u) {
-    const n = TEMPER.length - 1;
-    const f = Math.min(n - 1e-6, Math.max(0, u) * n), i = Math.floor(f), k = f - i;
-    const a = TEMPER[i], b = TEMPER[i + 1];
-    return 'rgb(' + Math.round(lerp(a[0], b[0], k)) + ',' + Math.round(lerp(a[1], b[1], k)) + ',' + Math.round(lerp(a[2], b[2], k)) + ')';
+  /* ===== Kształty elementów (wspólne dla stołu i rysunku) ===== */
+  function traceStar(g, cx, cy, r, sx, sy) {
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
+      const x = cx + Math.cos(a) * rr * sx, y = cy + Math.sin(a) * rr * sy;
+      if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+    }
+    g.closePath();
+  }
+  /* piętro choinki: trójkąt z jednym stopniem po bokach; (cx, yb) = środek podstawy */
+  function traceTier(g, cx, yb, w, h) {
+    g.moveTo(cx, yb - h);
+    g.lineTo(cx + w * 0.3, yb - h * 0.45); g.lineTo(cx + w * 0.18, yb - h * 0.45);
+    g.lineTo(cx + w * 0.5, yb); g.lineTo(cx - w * 0.5, yb);
+    g.lineTo(cx - w * 0.18, yb - h * 0.45); g.lineTo(cx - w * 0.3, yb - h * 0.45);
+    g.closePath();
+  }
+  function traceBauble(g, cx, cy, r, sx, sy, withCap) {
+    g.moveTo(cx + r * sx, cy); g.ellipse(cx, cy, r * sx, r * sy, 0, 0, TAU);
+    if (withCap) { g.rect(cx - r * 0.28 * sx, cy - r * sy - r * 0.3, r * 0.56 * sx, r * 0.34); }
   }
 
-  /* kontur detalu; zwraca punkt przebicia (start konturu) */
-  function tracePart(type, r, sx, sy, outerOnly) {
-    if (type === 'star') {
-      for (let i = 0; i < 10; i++) {
-        const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
-        const x = Math.cos(a) * rr * sx, y = Math.sin(a) * rr * sy;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      return [0, -r * sy];
-    }
-    if (type === 'washer') {
-      ctx.moveTo(r * 0.9 * sx, 0); ctx.ellipse(0, 0, r * 0.9 * sx, r * 0.9 * sy, 0, 0, TAU);
-      if (!outerOnly) { ctx.moveTo(r * 0.38 * sx, 0); ctx.ellipse(0, 0, r * 0.38 * sx, r * 0.38 * sy, 0, 0, TAU); }
-      return [r * 0.9 * sx, 0];
-    }
-    for (let i = 0; i <= 32; i++) {
-      const a = i / 32 * TAU, rr = i % 4 < 2 ? r : r * 0.76;
-      const x = Math.cos(a) * rr * sx, y = Math.sin(a) * rr * sy;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    if (!outerOnly) { ctx.moveTo(r * 0.28 * sx, 0); ctx.ellipse(0, 0, r * 0.28 * sx, r * 0.28 * sy, 0, 0, TAU); }
-    return [r * sx, 0];
+  /* kontur elementu na stole; zwraca punkt przebicia */
+  function tracePart(type, r, sx, sy) {
+    if (type === 'star') { traceStar(ctx, 0, 0, r, sx, sy); return [0, -r * sy]; }
+    if (type === 'tier') { traceTier(ctx, 0, r * 0.75 * sy, r * 1.9 * sx, r * 1.6 * sy); return [0, -r * 0.85 * sy]; }
+    traceBauble(ctx, 0, r * 0.1, r * 0.82, sx, sy, true);
+    return [r * 0.82 * sx, r * 0.1];
   }
 
   function drawFood(now) {
@@ -774,34 +898,28 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     }
     const cx = ox + (fx + 0.5) * cell, cy = oy + (fy + 0.5) * cell;
     const appear = easeOut(Math.min(1, (now - food.born) / 380));
-    const r = cell * 0.44 * food.scale * appear;
+    const r = cell * 0.46 * food.scale * appear;
     if (r < 0.5) return;
     const sx = food.sx, sy = food.sy;
 
-    const pulse = 0.5 + 0.5 * Math.sin(now / 380);
-    const hr = cell * 1.1 * Math.max(1, food.scale);
+    const pulse = 0.5 + 0.5 * Math.sin(now / 420);
+    const hr = cell * 1.15 * Math.max(1, food.scale);
     const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, hr);
-    halo.addColorStop(0, 'rgba(88,208,255,' + (0.1 + 0.08 * pulse).toFixed(3) + ')');
-    halo.addColorStop(1, 'rgba(88,208,255,0)');
+    halo.addColorStop(0, 'rgba(255,214,120,' + (0.12 + 0.08 * pulse).toFixed(3) + ')');
+    halo.addColorStop(1, 'rgba(255,214,120,0)');
     ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, hr, 0, TAU); ctx.fill();
 
     ctx.save(); ctx.translate(cx, cy);
-    ctx.beginPath(); tracePart(food.type, r, sx, sy, false);
-    if (food.ral) {
-      ctx.fillStyle = food.ral[1]; ctx.fill('evenodd');
-      const sheen = ctx.createLinearGradient(-r, -r, r, r);
-      sheen.addColorStop(0, 'rgba(255,255,255,0.35)'); sheen.addColorStop(0.6, 'rgba(255,255,255,0)');
-      ctx.fillStyle = sheen; ctx.fill('evenodd');
-    } else {
-      const steel = ctx.createLinearGradient(-r, -r, r, r);
-      steel.addColorStop(0, '#eef2f4'); steel.addColorStop(0.55, '#b3bdc5'); steel.addColorStop(1, '#7d8891');
-      ctx.fillStyle = steel; ctx.fill('evenodd');
-    }
+    ctx.beginPath(); tracePart(food.type, r, sx, sy);
+    ctx.fillStyle = food.color[1]; ctx.fill();
+    const sheen = ctx.createLinearGradient(-r, -r, r, r);
+    sheen.addColorStop(0, 'rgba(255,255,255,0.4)'); sheen.addColorStop(0.6, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sheen; ctx.fill();
     ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(10,14,18,0.8)'; ctx.stroke();
 
     // ścieżka narzędzia jak w programie do nestingu
     ctx.beginPath();
-    const pierce = tracePart(food.type, r * 1.16 + 1.5, sx, sy, true);
+    const pierce = tracePart(food.type, r * 1.18 + 1.5, sx, sy);
     ctx.setLineDash([Math.max(2, cell * 0.14), Math.max(2, cell * 0.1)]);
     ctx.lineDashOffset = -now / 28;
     ctx.strokeStyle = 'rgba(96,212,255,0.85)'; ctx.lineWidth = 1.25; ctx.stroke();
@@ -809,17 +927,17 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     ctx.fillStyle = '#ff5a4a'; ctx.beginPath(); ctx.arc(pierce[0], pierce[1], 1.8, 0, TAU); ctx.fill();
     ctx.restore();
 
-    if (food.ral) {
+    if (food.type === 'bauble') {
       ctx.font = '500 ' + Math.max(9, Math.round(cell * 0.36)) + 'px ' + MONO;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = 'rgba(232,237,240,0.85)';
-      ctx.fillText(food.ral[0], cx, Math.min(oy + rows * cell - 10, cy + r * sy + 5));
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = 'rgba(243,240,231,0.85)';
+      ctx.fillText(food.color[0], cx, Math.min(oy + rows * cell - 10, cy + r * sy + 6));
     }
     if (food.note && now - food.noteT < 1500) {
       const a = 1 - (now - food.noteT) / 1500;
       ctx.globalAlpha = Math.min(1, a * 2);
       ctx.font = '600 ' + Math.max(10, Math.round(cell * 0.42)) + 'px ' + MONO;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#f2c12e';
-      ctx.fillText(food.note, cx, Math.max(oy + 14, cy - r * sy - 6));
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = GOLD;
+      ctx.fillText(food.note, cx, Math.max(oy + 14, cy - r * sy - 8));
       ctx.globalAlpha = 1;
     }
   }
@@ -831,7 +949,8 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     ctx.stroke();
   }
 
-  function drawSnake(t) {
+  /* wąż = girlanda lampek, głowa = dysza lasera w czapce Mikołaja */
+  function drawSnake(t, now) {
     const n = snake.length; if (!n) return;
     const P = (x, y) => [ox + (x + 0.5) * cell, oy + (y + 0.5) * cell];
     const c0 = snake[0], p0 = prev[0] || c0;
@@ -840,26 +959,37 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     const last = snake[n - 1], pl = prev[n - 1];
     if (n > 1 && pl) pts.push(P(lerp(pl.x, last.x, t), lerp(pl.y, last.y, t)));
     headPx = pts[0];
-    const m = pts.length, w = cell * 0.52;
+    const m = pts.length;
 
     ctx.save();
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = w + 4;
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = cell * 0.2 + 3;
     strokeThrough(pts, 0, m);
-    ctx.lineWidth = w;
-    const span = Math.max(7, m - 1);
-    for (let i = m - 1; i >= 1; i--) {
-      ctx.strokeStyle = temper((i - 0.5) / span);
-      ctx.beginPath(); ctx.moveTo(pts[i][0], pts[i][1]); ctx.lineTo(pts[i - 1][0], pts[i - 1][1]); ctx.stroke();
+    ctx.strokeStyle = '#2f6a45'; ctx.lineWidth = Math.max(1.5, cell * 0.14);
+    strokeThrough(pts, 0, m);
+
+    // lampki
+    const br = cell * 0.24;
+    for (let i = n - 1; i >= 1; i--) {
+      const c = snake[i], p = prev[i] || c;
+      const x = ox + (lerp(p.x, c.x, t) + 0.5) * cell, y = oy + (lerp(p.y, c.y, t) + 0.5) * cell;
+      const col = BULBS[i % BULBS.length];
+      const tw = reduceMotion ? 1 : 0.7 + 0.3 * Math.sin(now / 750 + i * 1.7);
+      ctx.globalCompositeOperation = 'lighter';
+      const gl = ctx.createRadialGradient(x, y, 0, x, y, cell * 0.7);
+      gl.addColorStop(0, col); gl.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.globalAlpha = 0.35 * tw; ctx.fillStyle = gl;
+      ctx.beginPath(); ctx.arc(x, y, cell * 0.7, 0, TAU); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 0.65 + 0.35 * tw;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, br, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 0.8; ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(x - br * 0.35, y - br * 0.35, br * 0.28, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 1;
     }
-    ctx.strokeStyle = 'rgba(8,10,12,0.55)'; ctx.lineWidth = Math.max(1, w * 0.2);
-    strokeThrough(pts, 1, m);
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = 'rgba(255,140,50,0.22)'; ctx.lineWidth = w * 1.9;
-    strokeThrough(pts, 0, Math.min(m, 4));
 
     // głowica: miedziana dysza z punktem cięcia
     const hx = pts[0][0], hy = pts[0][1], r = cell * 0.4;
+    ctx.globalCompositeOperation = 'lighter';
     const glow = ctx.createRadialGradient(hx, hy, 0, hx, hy, cell * 1.3);
     glow.addColorStop(0, 'rgba(255,210,140,0.55)'); glow.addColorStop(0.4, 'rgba(255,140,50,0.18)'); glow.addColorStop(1, 'rgba(255,120,40,0)');
     ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(hx, hy, cell * 1.3, 0, TAU); ctx.fill();
@@ -873,19 +1003,154 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = state === 'over' ? '#ff6a3a' : '#fff6dc';
     ctx.beginPath(); ctx.arc(hx, hy, r * 0.32 * flick, 0, TAU); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    // czapka Mikołaja, czubek opada do tyłu
+    const s = dir.x !== 0 ? -dir.x : 1;
+    const by = hy - r * 0.45;
+    ctx.fillStyle = '#d42a35';
+    ctx.beginPath();
+    ctx.moveTo(hx - r * 0.85, by);
+    ctx.quadraticCurveTo(hx - r * 0.2 * s, hy - r * 2.3, hx + s * r * 1.45, hy - r * 1.55);
+    ctx.quadraticCurveTo(hx + r * 0.35 * s, hy - r * 1.3, hx + r * 0.85, by);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(60,8,12,0.6)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#f6f3ea';
+    ctx.beginPath(); ctx.ellipse(hx, by, r * 0.95, r * 0.24, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx + s * r * 1.45, hy - r * 1.55, Math.max(1.6, r * 0.3), 0, TAU); ctx.fill();
     ctx.restore();
   }
 
-  function draw(now) {
+  /* ===== Rysunek projektu choinki ===== */
+  function arrowHead(g, x, y, ang, s) {
+    g.beginPath(); g.moveTo(x, y);
+    g.lineTo(x - Math.cos(ang - 0.35) * s, y - Math.sin(ang - 0.35) * s);
+    g.lineTo(x - Math.cos(ang + 0.35) * s, y - Math.sin(ang + 0.35) * s);
+    g.closePath(); g.fill();
+  }
+
+  function drawProject(now, dt) {
+    if (treeFlash && now > treeFlash.until) treeFlash = null;
+    const T = treeFlash ? treeFlash.tree : tree;
+    const k = reduceMotion ? 1 : 1 - Math.pow(0.015, dt);
+    for (const key of Object.keys(T.target)) T.cur[key] += (T.target[key] - T.cur[key]) * k;
+    const D = T.cur;
+    const g = pctx, W = pw, H = ph;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = '#f4f1e8'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(45,94,140,0.08)'; g.lineWidth = 1;
+    for (let x = 10; x < W; x += 10) { g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, H); g.stroke(); }
+    for (let y = 10; y < H; y += 10) { g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(W, y + 0.5); g.stroke(); }
+
+    // ramka i tabelka rysunkowa
+    const F = 6, TB = 34;
+    g.strokeStyle = '#1f2a33'; g.lineWidth = 1.2; g.strokeRect(F + 0.5, F + 0.5, W - 2 * F - 1, H - 2 * F - 1);
+    const tbY = H - F - TB;
+    g.beginPath(); g.moveTo(F, tbY + 0.5); g.lineTo(W - F, tbY + 0.5); g.stroke();
+
+    // geometria w mm
+    const treeW = 600 * D.scale * D.sx, treeH = 900 * D.scale * D.sy;
+    const starR = 70 * D.star * D.scale, starOff = D.off;
+    const areaL = F + 30, areaR = W - F - 34, areaT = F + 10, areaB = tbY - 30;
+    const needW = treeW + Math.max(0, Math.abs(starOff) + starR - treeW / 2) * 2;
+    const needH = treeH + starR * 1.7;
+    let ppm = Math.min(0.17, (areaR - areaL) / needW, (areaB - areaT) / needH);
+    const denom = Math.max(1, Math.round(10 * 0.17 / ppm));
+    const cx = (areaL + areaR) / 2, baseY = areaB;
+    const tw = treeW * ppm, th = treeH * ppm;
+    const trunkH = th * 0.1, tierH = th * 0.38, stepH = th * 0.26;
+
+    const ghost = () => { g.setLineDash([4, 3]); g.strokeStyle = '#2d5e8c'; g.lineWidth = 1; g.stroke(); g.setLineDash([]); };
+    const solid = (fill) => { g.fillStyle = fill; g.fill(); g.strokeStyle = '#1f2a33'; g.lineWidth = 1; g.stroke(); };
+
+    // pień
+    g.beginPath(); g.rect(cx - tw * 0.08, baseY - trunkH, tw * 0.16, trunkH);
+    if (T.have.tier > 0) solid(TRUNK); else ghost();
+    // piętra od dołu
+    for (let i = 0; i < 3; i++) {
+      g.beginPath();
+      traceTier(g, cx, baseY - trunkH - i * stepH, tw * (1 - i * 0.24), tierH);
+      if (i < T.have.tier) solid(i % 2 ? '#2a6d43' : GREEN); else ghost();
+    }
+    // bombki
+    const tiersH = th - trunkH, tiersBase = baseY - trunkH;
+    const BPOS = [[-0.27, 0.07], [0.29, 0.1], [-0.06, 0.33], [0.2, 0.47], [-0.16, 0.66]];
+    const bR = Math.max(3, 30 * D.scale * ppm);
+    BPOS.forEach(([u, v], i) => {
+      const x = cx + u * tw * (1 - v * 0.9), y = tiersBase - v * tiersH;
+      g.beginPath(); traceBauble(g, x, y, bR, 1, 1, false);
+      if (i < T.have.bauble) {
+        solid(T.ral[1]);
+        g.fillStyle = 'rgba(255,255,255,0.55)'; g.beginPath(); g.arc(x - bR * 0.35, y - bR * 0.35, bR * 0.3, 0, TAU); g.fill();
+      } else { g.fillStyle = 'rgba(244,241,232,0.55)'; g.fill(); ghost(); }
+    });
+    // gwiazdka na czubku
+    const apexY = baseY - th;
+    const sr = starR * ppm, sxp = cx + starOff * ppm, syp = apexY - sr * 0.55;
+    g.beginPath(); traceStar(g, sxp, syp, sr, 1, 1);
+    if (T.have.star) solid(GOLD); else ghost();
+    if (Math.abs(starOff) > 1) {
+      g.setLineDash([2, 3]); g.strokeStyle = 'rgba(201,50,62,0.7)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(cx, apexY + 4); g.lineTo(cx, syp - sr - 4); g.stroke(); g.setLineDash([]);
+    }
+
+    // wymiary (zawsze wewnątrz ramki)
+    g.strokeStyle = '#1f2a33'; g.fillStyle = '#1f2a33'; g.lineWidth = 0.8;
+    g.font = '500 10px ' + MONO;
+    const dimY = Math.min(tbY - 10, baseY + 16);
+    const xL = Math.max(F + 6, cx - tw / 2), xR = Math.min(W - F - 6, cx + tw / 2);
+    g.beginPath(); g.moveTo(xL, baseY + 3); g.lineTo(xL, dimY + 4); g.moveTo(xR, baseY + 3); g.lineTo(xR, dimY + 4);
+    g.moveTo(xL, dimY); g.lineTo(xR, dimY); g.stroke();
+    arrowHead(g, xL, dimY, Math.PI, 5); arrowHead(g, xR, dimY, 0, 5);
+    g.textAlign = 'center'; g.textBaseline = 'bottom';
+    g.fillText(String(round10(treeW)), cx, dimY - 2);
+    const dimX = Math.min(W - F - 14, cx + tw / 2 + 16);
+    const yT = Math.max(F + 6, apexY);
+    g.beginPath(); g.moveTo(cx + tw * 0.08 + 3, baseY); g.lineTo(dimX + 4, baseY);
+    g.moveTo(cx + 3, apexY); g.lineTo(dimX + 4, apexY);
+    g.moveTo(dimX, baseY); g.lineTo(dimX, yT); g.stroke();
+    arrowHead(g, dimX, baseY, Math.PI / 2, 5); arrowHead(g, dimX, yT, -Math.PI / 2, 5);
+    g.save(); g.translate(dimX - 3, (baseY + yT) / 2); g.rotate(-Math.PI / 2);
+    g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText(String(round10(treeH)), 0, 0); g.restore();
+
+    // tabelka
+    const cells = [['CHOINKA NR ' + T.no, 0.42], ['REW. ' + T.rev, 0.2], ['1:' + denom, 0.17], [haveCount(T) + '/' + TOTAL, 0.21]];
+    let x = F;
+    g.textBaseline = 'middle';
+    cells.forEach(([txt, w], i) => {
+      const cwid = (W - 2 * F) * w;
+      if (i > 0) { g.beginPath(); g.moveTo(x + 0.5, tbY); g.lineTo(x + 0.5, H - F); g.stroke(); }
+      g.textAlign = 'left'; g.fillStyle = '#6c7780'; g.font = '500 8px ' + MONO;
+      g.fillText(['RYSUNEK', 'REWIZJA', 'SKALA', 'ELEMENTY'][i], x + 5, tbY + 9);
+      g.fillStyle = '#1f2a33'; g.font = '600 11px ' + MONO;
+      g.fillText(txt, x + 5, tbY + 23);
+      x += cwid;
+    });
+
+    if (treeFlash) {
+      g.save(); g.translate(W / 2, (F + tbY) / 2); g.rotate(-0.18);
+      g.strokeStyle = '#c9323e'; g.fillStyle = '#c9323e'; g.lineWidth = 2.5;
+      g.font = '24px "Saira Stencil One", Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const tw2 = g.measureText('ODDANO').width;
+      g.strokeRect(-tw2 / 2 - 10, -18, tw2 + 20, 36); g.fillText('ODDANO', 0, 1);
+      g.restore();
+    }
+  }
+
+  function draw(now, dt) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cw, ch);
     if (bedLayer) ctx.drawImage(bedLayer, 0, 0, cw, ch);
     let t = 1;
     if (state === 'run') t = Math.min(1, Math.max(0, (now - lastTick) / tickMs));
     else if (state === 'paused') t = pauseT;
+    drawTableSnow();
     drawFood(now);
-    drawSnake(t);
+    drawSnake(t, now);
     drawParticles();
+    drawProject(now, dt);
+    drawPageSnow(dt, now);
   }
 
   let lastFrame = performance.now();
@@ -901,8 +1166,9 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
         while (sparkAcc >= 1) { emitSpark(); sparkAcc -= 1; }
       }
     }
+    if (state !== 'paused') updateTableSnow(dt, now);
     updateParticles(dt);
-    draw(now);
+    draw(now, dt);
     requestAnimationFrame(frame);
   }
 
@@ -962,13 +1228,18 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     clearTimeout(resizeT);
     resizeT = setTimeout(() => {
       const [c] = isPortrait() ? [15, 30] : [30, 15];
-      if (state === 'ready' && c !== cols) { reset(); return; }
-      layout();
+      if (state === 'ready' && c !== cols) { reset(); initPageSnow(); return; }
+      layout(); initPageSnow();
     }, 120);
   });
 
+  const wt = wigiliaText();
+  $('eyebrow').textContent = 'Edycja świąteczna · ' + wt + ' · stół 3000 × 1500 mm';
+  $('startEyebrow').textContent = 'Zamówienie: choinka z blachy · ' + wt;
+
   renderMute();
   reset();
+  initPageSnow();
   requestAnimationFrame(frame);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderBed()).catch(() => {});
 })();
