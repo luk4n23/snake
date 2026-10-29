@@ -7,7 +7,7 @@
 <title>Laser Snake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Saira+Stencil+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Saira+Stencil+One&display=swap">
 <style>
 /* Układ: warsztat w zimową noc — nagłówek, odczyty sterownika, stół lasera z girlandą, obok rysunek projektu choinki i SMS-y od klienta */
 :root{
@@ -25,6 +25,7 @@
   --paper:#f4f1e8;       /* papier rysunku */
   --paper-ink:#1f2a33;
   --paper-dim:#6c7780;
+  --shout:#b0141f;       /* krzyk klienta */
   --scrim:rgba(9,17,16,0.76);
   --f-display:"Saira Stencil One","Impact","Arial Narrow",sans-serif;
   --f-body:"Barlow Semi Condensed","Arial Narrow","Segoe UI",sans-serif;
@@ -100,19 +101,27 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 @media (max-width:420px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* SMS-y od klienta */
-.bubbles{position:absolute;inset:0;pointer-events:none;line-height:1.25;overflow:visible}
-.bubble{position:absolute;transform:translate(-50%,-100%)}
+.bubbles{position:absolute;inset:0;pointer-events:none;line-height:1.05;overflow:visible;--fs:30px}
+.bubble{position:absolute;width:max-content;transform:translate(-50%,-100%)}
 .bubble.below{transform:translate(-50%,0)}
-.bubble-card{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:7px 13px 8px;box-shadow:0 8px 22px rgba(0,0,0,.4);white-space:nowrap;animation:bubbleIn .5s cubic-bezier(.2,.7,.2,1) both}
-.bubble-card::after{content:"";position:absolute;left:calc(50% + var(--tail,0px));bottom:-5px;width:12px;height:12px;background:inherit;transform:translateX(-50%) rotate(45deg);border-radius:2px}
-.bubble.below .bubble-card::after{bottom:auto;top:-5px}
-.bubble-who{display:block;font:500 10px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim)}
-.bubble-text{display:block;font-weight:700;font-size:18px}
-.bubble.ok .bubble-card{background:var(--gold);color:var(--gold-ink)}
-.bubble.ok .bubble-who{color:var(--gold-ink)}
-.bubble.out .bubble-card{animation:bubbleOut .55s ease forwards}
+.bubble-card{position:relative;display:flex;align-items:center;gap:calc(var(--fs) * .35);background:var(--paper);color:var(--paper-ink);border:3px solid var(--shout);border-radius:16px;padding:calc(var(--fs) * .28) calc(var(--fs) * .55) calc(var(--fs) * .32) calc(var(--fs) * .3);box-shadow:0 10px 26px rgba(0,0,0,.45);max-width:var(--maxw,90vw);animation:shout .75s cubic-bezier(.2,.8,.2,1) both}
+.bubble-card::after{content:"";position:absolute;left:calc(50% + var(--tail,0px));bottom:-9px;width:15px;height:15px;background:inherit;border-right:3px solid var(--shout);border-bottom:3px solid var(--shout);transform:translateX(-50%) rotate(45deg);border-radius:0 0 3px 0}
+.bubble.below .bubble-card::after{bottom:auto;top:-9px;border:0;border-left:3px solid var(--shout);border-top:3px solid var(--shout);border-radius:3px 0 0 0}
+.face{flex:none;display:block;width:calc(var(--fs) * 1.9);height:calc(var(--fs) * 1.9)}
+.face svg{display:block;width:100%;height:100%;overflow:visible}
+.bubble.lvl3 .face{animation:tremble .16s linear infinite}
+.bubble-body{display:grid;gap:3px;min-width:0}
+.bubble-who{display:block;font:600 calc(var(--fs) * .36)/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim)}
+.bubble-text{display:block;font:800 var(--fs)/1 var(--f-body);letter-spacing:.005em;text-transform:uppercase;color:var(--shout);text-wrap:balance}
+.bubble.lvl3 .bubble-text{font-size:calc(var(--fs) * 1.12)}
+.bubble.ok .bubble-card{background:var(--gold);border-color:var(--gold-ink);animation:bubbleIn .5s cubic-bezier(.2,.7,.2,1) both}
+.bubble.ok .bubble-card::after{border-color:var(--gold-ink)}
+.bubble.ok .bubble-who,.bubble.ok .bubble-text{color:var(--gold-ink)}
+.bubble.out .bubble-card{animation:bubbleOut .5s ease forwards}
+@keyframes shout{0%{opacity:0;transform:scale(.55)}30%{opacity:1;transform:scale(1.1)}42%{transform:scale(1) rotate(-4deg)}54%{transform:rotate(4deg)}66%{transform:rotate(-3deg)}78%{transform:rotate(2deg)}100%{opacity:1;transform:none}}
+@keyframes tremble{0%{transform:translate(0,0)}25%{transform:translate(1px,-1px)}50%{transform:translate(-1px,1px)}75%{transform:translate(1px,1px)}100%{transform:translate(0,0)}}
 @keyframes bubbleIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes bubbleOut{from{opacity:1}to{opacity:0;transform:translateY(-6px)}}
+@keyframes bubbleOut{from{opacity:1}to{opacity:0;transform:translateY(-8px) scale(.97)}}
 
 .stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);font-family:var(--f-display);font-size:clamp(26px,5.5vw,54px);line-height:1.1;color:var(--gold);border:3px solid var(--gold);background:rgba(16,32,30,.62);padding:4px 18px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
 .stamp.red{color:#ff8d95;border-color:#ff8d95}
@@ -139,12 +148,15 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 .inbox{padding-bottom:6px}
 .log{list-style:none;margin:0;padding:0;max-height:min(40vh,330px);overflow:auto}
 @media (max-width:1000px){.log{max-height:300px}}
-.log li{padding:10px 0;border-top:1px solid var(--line);display:grid;gap:2px}
+.log li{padding:10px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:12px;align-items:start}
+.log-icon{display:block;width:36px;height:36px;margin-top:2px}
+.log-icon svg{display:block;width:100%;height:100%;overflow:visible}
+.log-main{display:grid;gap:2px;min-width:0}
 .log li:first-child{border-top:0}
 .log li.new{animation:logIn 1s ease}
 @keyframes logIn{from{background:rgba(233,185,73,.12)}to{background:transparent}}
 .log-meta{font:400 11px/1.4 var(--f-mono);color:var(--ink-dim);display:flex;gap:10px;flex-wrap:wrap}
-.log-text{margin:0;font-weight:700;font-size:18px;line-height:1.25}
+.log-text{margin:0;font-weight:800;font-size:19px;line-height:1.15;text-transform:uppercase;letter-spacing:.01em}
 .log li.ok .log-text{color:var(--gold)}
 .log-note{margin:0;font-size:14px;color:var(--ink-dim)}
 .log-empty{margin:0;color:var(--ink-dim);font-size:15px;padding-bottom:10px;max-width:40ch}
@@ -154,7 +166,8 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
 
 @media (prefers-reduced-motion:reduce){
   .bubble-card,.bubble.out .bubble-card,.stamp.go,.log li.new,.ro dd.flash{animation-duration:.01ms}
-  .lights i{animation:none}
+  .lights i,.bubble.lvl3 .face{animation:none}
+  .bubble-card{animation-duration:.01ms}
 }
 </style>
 
@@ -327,7 +340,7 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   let snake = [], prev = [], dir = { x: 1, y: 0 }, queue = [], food = null;
   let tree = null, treeFlash = null, trees = 0;
   let state = 'ready', tickMs = BASE_TICK, lastTick = 0, pauseT = 0, overTimer = 0, overAt = 0;
-  let parts = 0, complaints = 0, score = 0, lastMsgText = '';
+  let parts = 0, complaints = 0, score = 0, lastMsgText = '', lastShout = '';
   let particles = [], sparkAcc = 0, headPx = null, tableSnow = [], pageSnow = [];
   let best = 0, muted = false;
   try {
@@ -388,6 +401,8 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     cw = ox + cols * cell + EDGE; ch = oy + rows * cell + EDGE;
     canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
     canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+    bubbles.style.setProperty('--fs', Math.round(clamp(cw * 0.034, 19, 34)) + 'px');
+    bubbles.style.setProperty('--maxw', (cw - 8) + 'px');
     renderBed();
     initTableSnow();
     pw = Math.max(200, proj.clientWidth || 260); ph = proj.clientHeight || 310;
@@ -549,7 +564,7 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
       snake = [0, 1, 2, 3].map((i) => ({ x: x - i, y })); dir = { x: 1, y: 0 };
     }
     prev = snake.map((p) => ({ x: p.x, y: p.y }));
-    queue = []; tickMs = BASE_TICK; parts = 0; complaints = 0; score = 0; lastMsgText = '';
+    queue = []; tickMs = BASE_TICK; parts = 0; complaints = 0; score = 0; lastMsgText = ''; lastShout = '';
     trees = 0; tree = newTree(1); treeFlash = null;
     particles = []; headPx = null;
     bubbles.textContent = ''; logEl.textContent = ''; logEmpty.hidden = false;
@@ -664,15 +679,18 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     if (accepted) { msg = ACCEPT; score += 50; note = 'akceptacja bez uwag · +50 pkt'; }
     else { msg = pickMessage(); complaints++; tree.rev++; note = applyEffect(msg); }
     lastMsgText = msg.text;
+    const level = angerLevel(msg);
+    const said = shout(msg.text, level);
+    lastShout = said.toLocaleUpperCase('pl-PL');
 
-    showBubble(msg.text, eaten.x, eaten.y, accepted);
-    addLog(msg.text, eaten.name, note, accepted ? 'ok' : '');
-    if (accepted) sfx.ok(); else sfx.msg();
+    showBubble(said, eaten.x, eaten.y, level);
+    addLog(said, eaten.name, note, accepted ? 'ok' : '', faceSVG(level));
+    if (accepted) sfx.ok(); else sfx.msg(level);
 
     if (treeDone(tree)) {
       trees++; score += 100;
       treeFlash = { until: now + 2200, tree };
-      addLog('Choinka nr ' + trees + ' oddana', 'rew. ' + tree.rev, '+100 pkt · klient zamawia następną', 'ok');
+      addLog('Choinka nr ' + trees + ' oddana', 'rew. ' + tree.rev, '+100 pkt · klient zamawia następną', 'ok', STAR_SVG);
       tree = newTree(trees + 1);
       showStamp('Choinka gotowa!', '');
       sfx.jingle();
@@ -706,8 +724,8 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     $('ovTrees').textContent = trees; $('ovCompl').textContent = complaints;
     $('ovScore').textContent = score; $('ovBest').textContent = best;
     $('overRecord').hidden = !isRecord;
-    $('overLast').textContent = lastMsgText
-      ? 'Ostatnia wiadomość od klienta: „' + lastMsgText + '”'
+    $('overLast').textContent = lastShout
+      ? 'Ostatnia wiadomość od klienta: „' + lastShout + '”'
       : 'Klient nie zdążył jeszcze nic napisać.';
     updateHud();
     clearTimeout(overTimer);
@@ -739,14 +757,68 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     clearTimeout(showStamp.t); showStamp.t = setTimeout(() => { stamp.hidden = true; }, 1650);
   }
 
-  function showBubble(text, gx, gy, accepted) {
-    const b = document.createElement('div'); b.className = 'bubble' + (accepted ? ' ok' : '');
+  /* ===== Złość klienta ===== */
+  const FACE_INK = '#3a1d0e';
+  const STAR_SVG = '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M32 6 L39.6 23.5 L58.5 25.2 L44.3 37.8 L48.4 56.4 L32 46.7 L15.6 56.4 L19.7 37.8 L5.5 25.2 L24.4 23.5 Z" fill="#e9b949" stroke="#3a1d0e" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+
+  /* 0 = naburmuszony „może być”, 1 = zirytowany, 2 = wściekły, 3 = czerwony, dymi z uszu */
+  function angerLevel(msg) {
+    if (msg.fx === 'ok') return 0;
+    if (msg.fx === 'rush') return 3;
+    return Math.min(3, 1 + Math.floor((tree.rev - 1) / 2));
+  }
+  function shout(text, level) {
+    return level === 0 ? text : text.trim() + '!'.repeat(level);
+  }
+  function faceSVG(level) {
+    const fill = ['#f5cf5a', '#f6b73c', '#f08a3a', '#e0453c'][level];
+    const s = 'stroke="' + FACE_INK + '" stroke-linecap="round" stroke-linejoin="round"';
+    let o = '<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">';
+    if (level === 3) {
+      o += '<g fill="#f3f0e7" ' + s + ' stroke-width="1.6"><circle cx="5" cy="15" r="4.5"/><circle cx="9" cy="7" r="3.6"/><circle cx="3" cy="3" r="2.4"/>'
+         + '<circle cx="59" cy="15" r="4.5"/><circle cx="55" cy="7" r="3.6"/><circle cx="61" cy="3" r="2.4"/></g>';
+    }
+    o += '<circle cx="32" cy="35" r="26" fill="' + fill + '" ' + s + ' stroke-width="2.5"/>';
+    o += '<ellipse cx="23" cy="20" rx="9" ry="4.5" fill="#fff" opacity=".3"/>';
+    if (level === 0) {
+      o += '<path d="M17 25 L28 24 M36 23 L47 26" ' + s + ' stroke-width="3.5" fill="none"/>';
+      o += '<path d="M19 32 a5 4 0 0 0 10 0 Z M35 32 a5 4 0 0 0 10 0 Z" fill="' + FACE_INK + '"/>';
+      o += '<path d="M23 48 Q30 45 41 47" ' + s + ' stroke-width="3" fill="none"/>';
+      return o + '</svg>';
+    }
+    const tilt = [0, 4, 7, 10][level];
+    o += '<path d="M14 ' + (24 - tilt / 2) + ' L28 ' + (27 + tilt / 2) + ' M50 ' + (24 - tilt / 2) + ' L36 ' + (27 + tilt / 2) + '" ' + s + ' stroke-width="' + (3 + level) + '" fill="none"/>';
+    const ry = level === 3 ? 2.6 : 3.6;
+    o += '<ellipse cx="23" cy="35" rx="3.4" ry="' + ry + '" fill="' + FACE_INK + '"/><ellipse cx="41" cy="35" rx="3.4" ry="' + ry + '" fill="' + FACE_INK + '"/>';
+    if (level === 1) {
+      o += '<path d="M22 51 Q32 44 42 51" ' + s + ' stroke-width="3.2" fill="none"/>';
+    } else if (level === 2) {
+      o += '<rect x="20" y="44" width="24" height="10" rx="3" fill="#fff" ' + s + ' stroke-width="2.2"/>';
+      o += '<path d="M20 49 H44 M26 44 V54 M32 44 V54 M38 44 V54" ' + s + ' stroke-width="1.5" fill="none"/>';
+    } else {
+      o += '<path d="M18 53 Q32 35 46 53 Q32 59 18 53 Z" fill="#5a1410" ' + s + ' stroke-width="2.4"/>';
+      o += '<path d="M23 48 Q32 40 41 48" stroke="#fff" stroke-width="2.8" fill="none" stroke-linecap="round"/>';
+    }
+    if (level >= 2) {
+      o += '<path d="M44 10 q4 2 4 6 M56 10 q-4 2 -4 6 M44 24 q4 -2 4 -6 M56 24 q-4 -2 -4 -6" stroke="#7a0f12" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+    }
+    return o + '</svg>';
+  }
+
+  function showBubble(text, gx, gy, level) {
+    const b = document.createElement('div'); b.className = 'bubble lvl' + level + (level === 0 ? ' ok' : '');
     const card = document.createElement('div'); card.className = 'bubble-card';
+    const face = document.createElement('span'); face.className = 'face'; face.innerHTML = faceSVG(level);
+    const body = document.createElement('div'); body.className = 'bubble-body';
     const who = document.createElement('span'); who.className = 'bubble-who';
-    who.textContent = 'Klient · projekt choinki · ' + hhmm();
+    who.textContent = 'Klient · ' + hhmm();
     const t = document.createElement('span'); t.className = 'bubble-text'; t.textContent = text;
-    card.append(who, t); b.append(card); bubbles.append(b);
-    while (bubbles.children.length > 3) bubbles.firstElementChild.remove();
+    // poprzedni dymek ustępuje nowemu, żeby się nie nakładały
+    for (const old of bubbles.children) {
+      if (old.classList.contains('out')) continue;
+      old.classList.add('out'); setTimeout(() => old.remove(), 500);
+    }
+    body.append(who, t); card.append(face, body); b.append(card); bubbles.append(b);
     const w = b.offsetWidth, h = b.offsetHeight;
     const cx = ox + (gx + 0.5) * cell, topY = oy + gy * cell;
     // dymek po stronie, z której głowica przyjechała, żeby nie zasłaniał drogi
@@ -759,22 +831,25 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
     b.style.left = left + 'px';
     b.style.top = (below ? oy + (gy + 1) * cell + 9 : topY - 7) + 'px';
     if (below) b.classList.add('below');
-    b.style.setProperty('--tail', Math.max(-(w / 2 - 14), Math.min(w / 2 - 14, cx - left)) + 'px');
-    setTimeout(() => b.classList.add('out'), 2500);
-    setTimeout(() => b.remove(), 3100);
+    b.style.setProperty('--tail', Math.max(-(w / 2 - 20), Math.min(w / 2 - 20, cx - left)) + 'px');
+    setTimeout(() => b.classList.add('out'), 2700);
+    setTimeout(() => b.remove(), 3250);
   }
 
-  function addLog(text, label, note, kind) {
+  function addLog(text, label, note, kind, icon) {
     logEmpty.hidden = true;
     const li = document.createElement('li'); li.className = 'new' + (kind ? ' ' + kind : '');
+    const ic = document.createElement('span'); ic.className = 'log-icon'; ic.innerHTML = icon || '';
+    const main = document.createElement('div'); main.className = 'log-main';
+    li.append(ic, main);
     const meta = document.createElement('div'); meta.className = 'log-meta';
     const tm = document.createElement('span'); tm.textContent = hhmm();
     const pn = document.createElement('span');
     pn.textContent = kind === 'ok' && !note.startsWith('akceptacja') ? label : 'element ' + String(parts).padStart(2, '0') + ' · ' + label;
     meta.append(tm, pn);
     const p = document.createElement('p'); p.className = 'log-text'; p.textContent = text;
-    li.append(meta, p);
-    if (note) { const n = document.createElement('p'); n.className = 'log-note'; n.textContent = note; li.append(n); }
+    main.append(meta, p);
+    if (note) { const n = document.createElement('p'); n.className = 'log-note'; n.textContent = note; main.append(n); }
     logEl.prepend(li);
     while (logEl.children.length > 60) logEl.lastElementChild.remove();
   }
@@ -803,7 +878,10 @@ kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width
   }
   const sfx = {
     eat() { tone(1568, 0.12, 'triangle', 0.04, 0); tone(2093, 0.18, 'sine', 0.025, 0.03); },
-    msg() { tone(1318, 0.11, 'sine', 0.06, 0.16); tone(988, 0.17, 'sine', 0.06, 0.29); },
+    msg(level) {
+      tone(1318, 0.11, 'sine', 0.06, 0.16); tone(988, 0.17, 'sine', 0.06, 0.29);
+      if (level >= 2) tone(120, 0.3, 'sawtooth', 0.035 * (level - 1), 0.12, 85); // burczenie klienta
+    },
     ok() { tone(784, 0.1, 'sine', 0.06, 0.12); tone(1046, 0.1, 'sine', 0.06, 0.22); tone(1318, 0.22, 'sine', 0.06, 0.32); },
     jingle() { [1046, 1318, 1568, 2093, 1568, 2093].forEach((f, i) => tone(f, 0.22, 'triangle', 0.05, 0.5 + i * 0.12)); },
     shift() { tone(300, 0.12, 'triangle', 0.05, 0, 420); },
