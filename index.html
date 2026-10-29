@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Snake na stole roboczym lasera fiber. Wycinasz detale, a klient po każdym ma uwagi.">
+<title>Laser Snake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Saira+Stencil+One&display=swap">
+<style>
+/* Układ: pulpit maszyny — nagłówek, odczyty jak na sterowniku CNC, stół roboczy 3000×1500 mm z linijkami, obok skrzynka wiadomości od klienta */
+:root{
+  color-scheme: dark;
+  --enamel:#27313a;      /* lakier korpusu maszyny */
+  --panel:#1c242b;       /* panele sterownika */
+  --line:#36434e;
+  --ink:#e8edf0;
+  --ink-dim:#97a5b1;
+  --safety:#f2c12e;      /* żółty BHP */
+  --safety-hi:#ffd651;
+  --safety-ink:#1b1a14;
+  --hazard-dark:#15191d;
+  --paper:#f6f4ee;       /* dymek SMS od klienta */
+  --paper-ink:#1d242a;
+  --paper-dim:#6a7680;
+  --scrim:rgba(13,17,21,0.74);
+  --f-display:"Saira Stencil One","Impact","Arial Narrow",sans-serif;
+  --f-body:"Barlow Semi Condensed","Arial Narrow","Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"Consolas",monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--enamel);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+
+.app{max-width:1320px;margin:0 auto;padding-block:20px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.brand{display:grid;gap:6px;min-width:0}
+.brand-eyebrow{font:500 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--safety)}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(38px,6.4vw,66px);line-height:.88;letter-spacing:.02em;text-wrap:balance}
+.brand h1 span{color:var(--safety)}
+.brand p{margin:0;color:var(--ink-dim);font-size:17px;max-width:60ch}
+.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{appearance:none;font:600 13px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 14px;cursor:pointer;transition:border-color .15s,background-color .15s}
+.btn:hover{border-color:var(--ink-dim)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:disabled:hover{border-color:var(--line)}
+.btn:focus-visible,.pad button:focus-visible{outline:2px solid var(--safety);outline-offset:2px}
+.btn-go{background:var(--safety);color:var(--safety-ink);border-color:var(--safety);font-size:16px;padding:14px 28px}
+.btn-go:hover{background:var(--safety-hi);border-color:var(--safety-hi)}
+
+/* odczyty sterownika */
+.hud{margin:0;display:grid;grid-template-columns:minmax(0,1.7fr) repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.ro{background:var(--panel);padding:9px 14px;display:grid;gap:3px;min-width:0;align-content:start}
+.ro dt{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro dd{margin:0;font-family:var(--f-mono);font-size:21px;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ro-pos dd{display:flex;gap:20px}
+.ro-pos b{color:var(--safety);font-weight:500;margin-right:6px}
+.ro dd small{font:500 12px var(--f-body);letter-spacing:.04em;color:var(--ink-dim);margin-left:8px}
+.ro dd.flash{animation:flash 1.4s ease}
+@keyframes flash{0%,30%{color:var(--safety)}100%{color:var(--ink)}}
+@media (max-width:760px){
+  .hud{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ro-pos{grid-column:1/-1}
+  .ro{padding:7px 12px}
+  .ro dd{font-size:18px}
+}
+
+/* stół + skrzynka */
+.work{display:grid;gap:14px;grid-template-columns:minmax(0,1fr) 280px;align-items:start}
+@media (max-width:1000px){.work{grid-template-columns:minmax(0,1fr)}}
+
+.bed{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 10px 10px;overflow:hidden;min-width:0;display:grid;gap:12px}
+.bed::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:repeating-linear-gradient(-45deg,var(--safety) 0 9px,var(--hazard-dark) 9px 18px)}
+.bed-wrap{position:relative;justify-self:center;line-height:0}
+#bed{display:block;touch-action:none;max-width:100%}
+
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:var(--scrim);padding:16px;line-height:1.45;overflow:auto}
+.ov-card{display:grid;gap:12px;justify-items:center;text-align:center;max-width:460px}
+.ov-eyebrow{font:500 12px/1.35 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--safety)}
+.ov-card h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(28px,4.2vw,46px);line-height:1;letter-spacing:.02em;text-wrap:balance}
+.ov-card p{margin:0;font-size:17px;max-width:44ch}
+.ov-card .keys{font-size:14px;color:var(--ink-dim)}
+kbd{font:500 12px var(--f-mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:1px 6px;background:var(--panel);color:var(--ink)}
+.stats{margin:2px 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:4px;overflow:hidden;width:100%}
+.stats div{background:var(--panel);padding:8px 10px;display:grid;gap:2px}
+.stats dt{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
+.stats dd{margin:0;font:500 22px/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
+.badge{font:600 12px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;background:var(--safety);color:var(--safety-ink);padding:6px 10px;border-radius:3px}
+.last-msg{color:var(--ink-dim)}
+@media (max-width:420px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* dymki SMS od klienta */
+.bubbles{position:absolute;inset:0;pointer-events:none;line-height:1.25;overflow:visible}
+.bubble{position:absolute;transform:translate(-50%,-100%)}
+.bubble.below{transform:translate(-50%,0)}
+.bubble-card{position:relative;background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:7px 13px 8px;box-shadow:0 8px 22px rgba(0,0,0,.4);white-space:nowrap;animation:bubbleIn .45s cubic-bezier(.2,.7,.2,1) both}
+.bubble-card::after{content:"";position:absolute;left:calc(50% + var(--tail,0px));bottom:-5px;width:12px;height:12px;background:inherit;transform:translateX(-50%) rotate(45deg);border-radius:2px}
+.bubble.below .bubble-card::after{bottom:auto;top:-5px}
+.bubble-who{display:block;font:500 10px/1.3 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim)}
+.bubble-text{display:block;font-weight:700;font-size:18px}
+.bubble.ok .bubble-card{background:var(--safety);color:var(--safety-ink)}
+.bubble.ok .bubble-who{color:var(--safety-ink)}
+.bubble.out .bubble-card{animation:bubbleOut .5s ease forwards}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes bubbleOut{from{opacity:1}to{opacity:0;transform:translateY(-6px)}}
+
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);font-family:var(--f-display);font-size:clamp(26px,5.5vw,54px);line-height:1.1;color:var(--safety);border:3px solid var(--safety);background:rgba(20,24,28,.6);padding:4px 18px;border-radius:4px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
+.stamp.go{animation:stamp 1.45s ease forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1.08)}20%{opacity:1;transform:translate(-50%,-50%) rotate(-7deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-7deg) scale(1)}}
+
+/* sterowanie dotykowe */
+.pad{display:none;grid-template-columns:repeat(3,60px);grid-template-rows:repeat(2,48px);gap:6px;justify-content:center}
+@media (pointer:coarse){.pad{display:grid}}
+.pad button{font:600 20px/1 var(--f-body);background:var(--enamel);color:var(--ink);border:1px solid var(--line);border-radius:6px;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.pad button:active{background:var(--line)}
+.pad .up{grid-column:2;grid-row:1}
+.pad .left{grid-column:1;grid-row:2}
+.pad .down{grid-column:2;grid-row:2}
+.pad .right{grid-column:3;grid-row:2}
+
+.inbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px 6px;display:grid;gap:8px;align-content:start;min-width:0}
+.inbox-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.inbox h2{margin:0;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim)}
+.count{font:500 13px/1.4 var(--f-mono);background:var(--safety);color:var(--safety-ink);border-radius:999px;padding:1px 9px;min-width:30px;text-align:center;font-variant-numeric:tabular-nums}
+.log{list-style:none;margin:0;padding:0;max-height:min(64vh,560px);overflow:auto}
+@media (max-width:1000px){.log{max-height:220px}}
+.log li{padding:10px 0;border-top:1px solid var(--line);display:grid;gap:2px}
+.log li:first-child{border-top:0}
+.log li.new{animation:logIn .9s ease}
+@keyframes logIn{from{background:rgba(242,193,46,.12)}to{background:transparent}}
+.log-meta{font:400 11px/1.4 var(--f-mono);color:var(--ink-dim);display:flex;gap:10px;flex-wrap:wrap}
+.log-text{margin:0;font-weight:700;font-size:18px;line-height:1.25}
+.log li.ok .log-text{color:var(--safety)}
+.log-note{margin:0;font-size:14px;color:var(--ink-dim)}
+.log-empty{margin:0;color:var(--ink-dim);font-size:15px;padding-bottom:10px;max-width:40ch}
+
+.foot{color:var(--ink-dim);font-size:14px;display:flex;flex-wrap:wrap;gap:6px 20px}
+.foot kbd{font-size:11px}
+
+@media (prefers-reduced-motion:reduce){
+  .bubble-card,.bubble.out .bubble-card,.stamp.go,.log li.new,.ro dd.flash{animation-duration:.01ms}
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="brand-eyebrow">Stół roboczy 3000 × 1500 mm · stal S235, 3 mm</span>
+      <h1>Laser <span>Snake</span></h1>
+      <p>Prowadź głowicę po lamelach i wycinaj detale. Każdy detal jedzie do klienta, a klient zawsze ma uwagi.</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="btnPause" type="button" disabled>Pauza</button>
+      <button class="btn" id="btnSound" type="button" aria-pressed="true">Dźwięk: wł.</button>
+    </div>
+  </header>
+
+  <dl class="hud" aria-label="Odczyty maszyny">
+    <div class="ro ro-pos"><dt>Pozycja głowicy, mm</dt><dd><span><b>X</b><span id="hudX">0000.0</span></span><span><b>Y</b><span id="hudY">0000.0</span></span></dd></div>
+    <div class="ro"><dt>Posuw, m/min</dt><dd id="hudFeed">40</dd></div>
+    <div class="ro"><dt>Detale</dt><dd id="hudParts">0</dd></div>
+    <div class="ro"><dt>Reklamacje</dt><dd id="hudComplaints">0</dd></div>
+    <div class="ro"><dt>Punkty</dt><dd><span id="hudScore">0</span><small>rekord <span id="hudBest">0</span></small></dd></div>
+  </dl>
+
+  <main class="work">
+    <section class="bed" id="bedBox" aria-label="Stół roboczy lasera">
+      <div class="bed-wrap" id="bedWrap">
+        <canvas id="bed" role="img" aria-label="Stół roboczy z lamelami, głowica tnąca i detal do wycięcia"></canvas>
+        <div class="bubbles" id="bubbles" aria-hidden="true"></div>
+        <div class="stamp" id="stamp" hidden>Pilne! Na wczoraj</div>
+
+        <div class="overlay" id="ovStart">
+          <div class="ov-card">
+            <span class="ov-eyebrow">Zlecenie nr 1530 · gwiazdki i inne drobiazgi</span>
+            <h2>Gotowy do cięcia</h2>
+            <p>Najedź głowicą na detal, żeby go wyciąć. Nie wyjeżdżaj poza stół i nie tnij po własnym konturze.</p>
+            <button class="btn btn-go" id="btnStart" type="button">Start cięcia</button>
+            <p class="keys"><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> lub <kbd>WASD</kbd> · <kbd>Spacja</kbd> pauza · na telefonie przesuń palcem po stole</p>
+            <p class="keys" id="startBest" hidden></p>
+          </div>
+        </div>
+
+        <div class="overlay" id="ovPause" hidden>
+          <div class="ov-card">
+            <span class="ov-eyebrow">Posuw wstrzymany</span>
+            <h2>Pauza</h2>
+            <button class="btn btn-go" id="btnResume" type="button">Wznów cięcie</button>
+            <p class="keys"><kbd>Spacja</kbd> wznawia</p>
+          </div>
+        </div>
+
+        <div class="overlay" id="ovOver" hidden>
+          <div class="ov-card">
+            <span class="ov-eyebrow" id="overReason">Alarm</span>
+            <h2 id="overTitle">Zlecenie przerwane</h2>
+            <span class="badge" id="overRecord" hidden>Nowy rekord</span>
+            <dl class="stats">
+              <div><dt>Detale</dt><dd id="ovParts">0</dd></div>
+              <div><dt>Reklamacje</dt><dd id="ovCompl">0</dd></div>
+              <div><dt>Punkty</dt><dd id="ovScore">0</dd></div>
+              <div><dt>Rekord</dt><dd id="ovBest">0</dd></div>
+            </dl>
+            <p class="last-msg" id="overLast"></p>
+            <button class="btn btn-go" id="btnRestart" type="button">Nowe zlecenie</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pad" aria-label="Sterowanie dotykowe">
+        <button type="button" class="up" data-dir="0,-1" aria-label="Do góry">▲</button>
+        <button type="button" class="left" data-dir="-1,0" aria-label="W lewo">◀</button>
+        <button type="button" class="down" data-dir="0,1" aria-label="W dół">▼</button>
+        <button type="button" class="right" data-dir="1,0" aria-label="W prawo">▶</button>
+      </div>
+    </section>
+
+    <aside class="inbox" aria-labelledby="inboxTitle">
+      <div class="inbox-head">
+        <h2 id="inboxTitle">Wiadomości od klienta</h2>
+        <span class="count" id="inboxCount" title="Liczba reklamacji">0</span>
+      </div>
+      <ol class="log" id="log" aria-live="polite"></ol>
+      <p class="log-empty" id="logEmpty">Pusto. Wytnij pierwszy detal, a klient na pewno się odezwie.</p>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span><kbd>←↑→↓</kbd> / <kbd>WASD</kbd> sterowanie</span>
+    <span><kbd>Spacja</kbd> pauza</span>
+    <span><kbd>M</kbd> dźwięk</span>
+    <span>1 kratka = 100 mm</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ===== Teksty klienta. Dopisz własne: text = treść, fx = efekt w grze ===== */
+  const MESSAGES = [
+    { text: 'Gwiazdka za mała', fx: 'bigger',  starOnly: true },
+    { text: 'Gwiazdka za duża', fx: 'smaller', starOnly: true },
+    { text: 'Kolory nie takie', fx: 'color' },
+    { text: 'Brak proporcji',   fx: 'stretch' },
+    { text: 'Trochę w prawo',   fx: 'right' },
+    { text: 'Trochę w lewo',    fx: 'left' },
+    { text: 'Za mała',          fx: 'bigger' },
+    { text: 'Za duża',          fx: 'smaller' },
+    { text: 'Kiedy będą?',      fx: 'rush' },
+  ];
+  /* Rzadki przypadek: klient przyjmuje detal bez uwag (+50 pkt) */
+  const ACCEPT = { text: 'Może być.', fx: 'ok' };
+  const ACCEPT_CHANCE = 0.06;
+
+  const PARTS = [
+    { type: 'star',   name: 'gwiazdka',  weight: 6 },
+    { type: 'washer', name: 'podkładka', weight: 2 },
+    { type: 'gear',   name: 'zębatka',   weight: 2 },
+  ];
+  const RAL = [
+    ['RAL 3020', '#c1121c'], ['RAL 5015', '#2271b3'], ['RAL 6018', '#57a639'],
+    ['RAL 1023', '#f0ca00'], ['RAL 2004', '#e75b12'], ['RAL 9016', '#f1f0ea'], ['RAL 4006', '#923e8c'],
+  ];
+  const DISTORT = [[1.55, 0.72], [0.66, 1.42], [1.3, 0.8]];
+  /* barwy nalotowe stali: od żaru przy głowicy do wystygłego końca */
+  const TEMPER = [[255,246,220],[255,170,70],[232,196,110],[186,122,62],[140,82,146],[66,112,184],[112,126,138]];
+  const SLAG = ['rgba(92,62,34,.85)', 'rgba(60,44,30,.9)', 'rgba(48,70,98,.7)', 'rgba(120,96,58,.75)'];
+
+  const CELL_MM = 100;
+  const BASE_TICK = 150, MIN_TICK = 62;
+  const RULER = 22, EDGE = 4;
+  const BEST_KEY = 'laser-snake-best', MUTE_KEY = 'laser-snake-mute';
+  const TAU = Math.PI * 2;
+  const MONO = '"IBM Plex Mono", ui-monospace, Consolas, monospace';
+  const REASONS = {
+    wall: { eyebrow: 'Alarm: głowica poza polem roboczym', title: 'Zlecenie przerwane' },
+    self: { eyebrow: 'Alarm: kolizja z wyciętym konturem', title: 'Zlecenie przerwane' },
+    full: { eyebrow: 'Arkusz wykorzystany w 100%', title: 'Stół pełny' },
+  };
+
+  const mq = (q) => (window.matchMedia ? window.matchMedia(q).matches : false);
+  const reduceMotion = mq('(prefers-reduced-motion: reduce)');
+  const coarse = mq('(pointer: coarse)');
+
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('bed'), ctx = canvas.getContext('2d');
+  const bedBox = $('bedBox'), wrap = $('bedWrap'), bubbles = $('bubbles'), stamp = $('stamp');
+  const ovStart = $('ovStart'), ovPause = $('ovPause'), ovOver = $('ovOver');
+  const hud = { x: $('hudX'), y: $('hudY'), feed: $('hudFeed'), parts: $('hudParts'), compl: $('hudComplaints'), score: $('hudScore'), best: $('hudBest') };
+  const logEl = $('log'), logEmpty = $('logEmpty'), inboxCount = $('inboxCount');
+  const btnSound = $('btnSound'), btnPause = $('btnPause');
+
+  let cols = 30, rows = 15, cell = 24, ox = RULER, oy = RULER, cw = 0, ch = 0, dpr = 1, bedLayer = null;
+  let snake = [], prev = [], dir = { x: 1, y: 0 }, queue = [], food = null;
+  let spec = { scale: 1, sx: 1, sy: 1, ral: null };
+  let state = 'ready', tickMs = BASE_TICK, lastTick = 0, pauseT = 0, overTimer = 0, overAt = 0;
+  let parts = 0, complaints = 0, score = 0, lastMsgText = '';
+  let particles = [], sparkAcc = 0, headPx = null;
+  let best = 0, muted = false;
+  try {
+    best = parseInt(localStorage.getItem(BEST_KEY), 10) || 0;
+    muted = localStorage.getItem(MUTE_KEY) === '1';
+  } catch (e) { /* brak dostępu do pamięci przeglądarki */ }
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  const pct = (v) => Math.round(v * 100) + '%';
+  const feed = () => 6000 / tickMs; // 100 mm na takt -> m/min
+  const mm = (i) => ((i + 0.5) * CELL_MM).toFixed(1).padStart(6, '0');
+  const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ===== Rozmiar planszy ===== */
+  function isPortrait() { return window.innerWidth < 760 && window.innerHeight > window.innerWidth * 1.15; }
+
+  function layout() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const cs = getComputedStyle(bedBox);
+    const availW = bedBox.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const reserve = rows > cols ? 175 : 245;
+    const availH = Math.max(220, window.innerHeight - reserve);
+    const c = Math.floor(Math.min((availW - RULER - EDGE) / cols, (availH - RULER - EDGE) / rows));
+    cell = Math.max(8, Math.min(34, c));
+    ox = RULER; oy = RULER;
+    cw = ox + cols * cell + EDGE; ch = oy + rows * cell + EDGE;
+    canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+    canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+    renderBed();
+  }
+
+  /* ===== Stół: lamele, żużel, linijki (rysowane raz) ===== */
+  function renderBed() {
+    const c = document.createElement('canvas');
+    c.width = Math.round(cw * dpr); c.height = Math.round(ch * dpr);
+    const g = c.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const bw = cols * cell, bh = rows * cell;
+    g.fillStyle = '#151c22'; g.fillRect(0, 0, cw, ch);
+    const pit = g.createLinearGradient(0, oy, 0, oy + bh);
+    pit.addColorStop(0, '#10161a'); pit.addColorStop(1, '#0a0e11');
+    g.fillStyle = pit; g.fillRect(ox, oy, bw, bh);
+
+    const rnd = mulberry32(3015);
+    const vertical = cols >= rows; // lamele w poprzek dłuższej osi stołu
+
+    g.strokeStyle = 'rgba(150,170,186,0.07)'; g.lineWidth = 1;
+    if (vertical) {
+      for (let y = 1; y < rows; y++) { const yy = oy + y * cell + 0.5; g.beginPath(); g.moveTo(ox, yy); g.lineTo(ox + bw, yy); g.stroke(); }
+    } else {
+      for (let x = 1; x < cols; x++) { const xx = ox + x * cell + 0.5; g.beginPath(); g.moveTo(xx, oy); g.lineTo(xx, oy + bh); g.stroke(); }
+    }
+
+    const bar = (p, w, color) => {
+      g.fillStyle = color;
+      if (vertical) g.fillRect(p - w / 2, oy, w, bh); else g.fillRect(ox, p - w / 2, bw, w);
+    };
+    const count = vertical ? cols : rows;
+    const len = vertical ? bh : bw;
+    const step = Math.max(4, cell / 3);
+    for (let i = 1; i < count; i++) {
+      const p = (vertical ? ox : oy) + i * cell;
+      bar(p + 1.5, 3, '#04070a');
+      bar(p, 2, '#59646e');
+      bar(p - 0.6, 0.8, '#8c98a2');
+      for (let s = step / 2; s < len; s += step) {
+        const a = vertical ? p : ox + s, b = vertical ? oy + s : p;
+        g.fillStyle = '#a8b3bc'; g.fillRect(a - 1, b - 1, 2, 2);
+        if (rnd() < 0.22) {
+          const sz = 1.2 + rnd() * 2.8;
+          g.fillStyle = SLAG[(rnd() * SLAG.length) | 0];
+          g.beginPath(); g.ellipse(a + (rnd() - 0.5) * 3, b + (rnd() - 0.5) * 3, sz, sz * 0.7, rnd() * 3, 0, TAU); g.fill();
+        }
+      }
+    }
+    g.strokeStyle = '#4b5a66'; g.lineWidth = 1; g.strokeRect(ox - 0.5, oy - 0.5, bw + 1, bh + 1);
+
+    // linijki w mm
+    g.font = '500 9px ' + MONO; g.fillStyle = '#8e9caa'; g.strokeStyle = '#6f7d89';
+    const every = cell * 5 >= 34 ? 5 : 10;
+    for (let i = 0; i <= cols; i++) {
+      const x = ox + i * cell + 0.5, major = i % 5 === 0;
+      g.beginPath(); g.moveTo(x, oy - (major ? 8 : 4)); g.lineTo(x, oy - 1); g.stroke();
+      if (i > 0 && i % every === 0) {
+        g.textAlign = i === cols ? 'right' : 'center'; g.textBaseline = 'top';
+        g.fillText(String(i * CELL_MM), x, 2);
+      }
+    }
+    for (let j = 0; j <= rows; j++) {
+      const y = oy + j * cell + 0.5, major = j % 5 === 0;
+      g.beginPath(); g.moveTo(ox - (major ? 8 : 4), y); g.lineTo(ox - 1, y); g.stroke();
+      if (j > 0 && j % every === 0) {
+        g.save(); g.translate(2, y); g.rotate(-Math.PI / 2);
+        g.textAlign = j === rows ? 'left' : 'center'; g.textBaseline = 'top';
+        g.fillText(String(j * CELL_MM), 0, 0); g.restore();
+      }
+    }
+    g.textAlign = 'left'; g.textBaseline = 'top'; g.fillStyle = '#6f7d89'; g.fillText('mm', 2, 3);
+    bedLayer = c;
+  }
+
+  /* ===== Stan gry ===== */
+  function onSnake(x, y) { for (const s of snake) if (s.x === x && s.y === y) return true; return false; }
+
+  function pickPart() {
+    let r = Math.random() * PARTS.reduce((a, p) => a + p.weight, 0);
+    for (const p of PARTS) { r -= p.weight; if (r < 0) return p; }
+    return PARTS[0];
+  }
+
+  function spawnFood(now) {
+    const h = snake[0], free = [];
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+      if (Math.abs(x - h.x) + Math.abs(y - h.y) < 3) continue;
+      if (onSnake(x, y)) continue;
+      free.push([x, y]);
+    }
+    if (!free.length) { food = null; return false; }
+    const [x, y] = pick(free);
+    const part = pickPart();
+    food = { x, y, type: part.type, name: part.name, scale: spec.scale, sx: spec.sx, sy: spec.sy, ral: spec.ral,
+             born: now, from: null, shiftT: 0, note: '', noteT: 0, pendingShift: null };
+    return true;
+  }
+
+  function reset() {
+    [cols, rows] = isPortrait() ? [15, 30] : [30, 15];
+    layout();
+    if (rows > cols) {
+      const x = Math.floor(cols / 2), y = rows - 6;
+      snake = [0, 1, 2, 3].map((i) => ({ x, y: y + i })); dir = { x: 0, y: -1 };
+    } else {
+      const x = 6, y = Math.floor(rows / 2);
+      snake = [0, 1, 2, 3].map((i) => ({ x: x - i, y })); dir = { x: 1, y: 0 };
+    }
+    prev = snake.map((p) => ({ x: p.x, y: p.y }));
+    queue = []; spec = { scale: 1, sx: 1, sy: 1, ral: null };
+    tickMs = BASE_TICK; parts = 0; complaints = 0; score = 0; lastMsgText = '';
+    particles = []; headPx = null;
+    bubbles.textContent = ''; logEl.textContent = ''; logEmpty.hidden = false;
+    spawnFood(performance.now());
+    updateHud(); updateCoords();
+  }
+
+  function start() {
+    if (state === 'run') return;
+    if (state === 'paused') { togglePause(); return; }
+    if (state === 'over') {
+      if (performance.now() - overAt < 600) return;
+      reset();
+    }
+    initAudio();
+    state = 'run';
+    lastTick = performance.now();
+    ovStart.hidden = true; ovOver.hidden = true; ovPause.hidden = true;
+    btnPause.disabled = false; btnPause.textContent = 'Pauza';
+    if (coarse && rows > cols) wrap.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+
+  function togglePause() {
+    const now = performance.now();
+    if (state === 'run') {
+      state = 'paused'; pauseT = Math.min(1, (now - lastTick) / tickMs);
+      ovPause.hidden = false; btnPause.textContent = 'Wznów';
+    } else if (state === 'paused') {
+      state = 'run'; lastTick = now - pauseT * tickMs;
+      ovPause.hidden = true; btnPause.textContent = 'Pauza';
+    }
+  }
+
+  function turn(x, y) {
+    if (state === 'ready') start();
+    if (state !== 'run') return;
+    const last = queue.length ? queue[queue.length - 1] : dir;
+    if ((last.x === x && last.y === y) || (last.x === -x && last.y === -y)) return;
+    if (queue.length < 3) queue.push({ x, y });
+  }
+
+  function step(now) {
+    if (queue.length) dir = queue.shift();
+    const h = snake[0], nx = h.x + dir.x, ny = h.y + dir.y;
+    if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) { gameOver('wall'); return; }
+    const grow = !!food && nx === food.x && ny === food.y;
+    const check = grow ? snake.length : snake.length - 1;
+    for (let i = 0; i < check; i++) if (snake[i].x === nx && snake[i].y === ny) { gameOver('self'); return; }
+    prev = snake.map((p) => ({ x: p.x, y: p.y }));
+    snake.unshift({ x: nx, y: ny });
+    if (!grow) snake.pop();
+    if (grow) eat(now);
+    updateCoords();
+  }
+
+  function pickMessage(type) {
+    const pool = MESSAGES.filter((m) => (!m.starOnly || type === 'star') && m.text !== lastMsgText);
+    return pick(pool.length ? pool : MESSAGES);
+  }
+
+  function applyEffect(msg) {
+    switch (msg.fx) {
+      case 'bigger':
+        spec.scale = Math.min(1.6, Math.round((spec.scale + 0.3) * 100) / 100);
+        return 'następny detal w skali ' + pct(spec.scale);
+      case 'smaller':
+        spec.scale = Math.max(0.5, Math.round((spec.scale - 0.3) * 100) / 100);
+        return 'następny detal w skali ' + pct(spec.scale);
+      case 'color': {
+        spec.ral = pick(RAL.filter((r) => r !== spec.ral));
+        return 'przemalowano na ' + spec.ral[0];
+      }
+      case 'stretch': {
+        const d = pick(DISTORT.filter((v) => v[0] !== spec.sx));
+        spec.sx = d[0]; spec.sy = d[1];
+        return 'skala X ' + pct(d[0]) + ', Y ' + pct(d[1]);
+      }
+      case 'right': return 'następny detal przesunięty o +100 mm w X';
+      case 'left': return 'następny detal przesunięty o −100 mm w X';
+      case 'rush':
+        tickMs = Math.max(MIN_TICK, tickMs - 10);
+        showStamp(); flash(hud.feed);
+        return 'posuw podniesiony do ' + Math.round(feed()) + ' m/min';
+    }
+    return '';
+  }
+
+  function eat(now) {
+    const eaten = food;
+    const cx = ox + (eaten.x + 0.5) * cell, cy = oy + (eaten.y + 0.5) * cell;
+    burst(cx, cy, eaten.ral ? eaten.ral[1] : '#dfe6eb', reduceMotion ? 8 : 18);
+    parts++;
+    score += 10 + Math.round((BASE_TICK - tickMs) / 3);
+    if (parts % 4 === 0) tickMs = Math.max(MIN_TICK, tickMs - 4);
+    sfx.eat();
+
+    const accepted = parts > 2 && Math.random() < ACCEPT_CHANCE;
+    let msg, note;
+    if (accepted) { msg = ACCEPT; score += 50; note = 'akceptacja bez uwag · +50 pkt'; }
+    else { msg = pickMessage(eaten.type); complaints++; note = applyEffect(msg); }
+    lastMsgText = msg.text;
+
+    const ok = spawnFood(now);
+    if (food && (msg.fx === 'right' || msg.fx === 'left')) food.pendingShift = { dx: msg.fx === 'right' ? 1 : -1, at: now + 650 };
+
+    showBubble(msg.text, eaten.x, eaten.y, accepted);
+    addLog(msg.text, eaten.name, note, accepted);
+    if (accepted) sfx.ok(); else sfx.msg();
+    updateHud();
+    if (!ok) gameOver('full');
+  }
+
+  function doShift(now) {
+    const ps = food.pendingShift; food.pendingShift = null;
+    const nx = food.x + ps.dx;
+    if (nx < 0 || nx >= cols || onSnake(nx, food.y)) return;
+    food.from = { x: food.x, y: food.y }; food.shiftT = now; food.x = nx;
+    food.note = ps.dx > 0 ? '→ +100 mm' : '← −100 mm'; food.noteT = now;
+    sfx.shift();
+  }
+
+  function gameOver(reason) {
+    state = 'over'; overAt = performance.now();
+    btnPause.disabled = true; btnPause.textContent = 'Pauza';
+    if (headPx) burst(headPx[0], headPx[1], null, reduceMotion ? 12 : 40);
+    sfx.crash();
+    const isRecord = score > best;
+    if (isRecord) { best = score; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) { /* bez zapisu */ } }
+    const r = REASONS[reason] || REASONS.wall;
+    $('overReason').textContent = r.eyebrow;
+    $('overTitle').textContent = r.title;
+    $('ovParts').textContent = parts; $('ovCompl').textContent = complaints;
+    $('ovScore').textContent = score; $('ovBest').textContent = best;
+    $('overRecord').hidden = !isRecord;
+    $('overLast').textContent = lastMsgText
+      ? 'Ostatnia wiadomość od klienta: „' + lastMsgText + '”'
+      : 'Klient nie zdążył jeszcze nic napisać.';
+    updateHud();
+    clearTimeout(overTimer);
+    overTimer = setTimeout(() => {
+      if (state !== 'over') return;
+      ovOver.hidden = false;
+      try { $('btnRestart').focus({ preventScroll: true }); } catch (e) { /* ok */ }
+    }, 700);
+  }
+
+  /* ===== Interfejs ===== */
+  function updateHud() {
+    hud.parts.textContent = parts; hud.compl.textContent = complaints;
+    hud.score.textContent = score; hud.best.textContent = best;
+    hud.feed.textContent = Math.round(feed());
+    inboxCount.textContent = complaints;
+    const sb = $('startBest');
+    sb.hidden = best <= 0; sb.textContent = 'Rekord na tym urządzeniu: ' + best + ' pkt';
+  }
+  function updateCoords() { const h = snake[0]; hud.x.textContent = mm(h.x); hud.y.textContent = mm(h.y); }
+
+  function flash(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+
+  function showStamp() {
+    stamp.hidden = false; stamp.classList.remove('go'); void stamp.offsetWidth; stamp.classList.add('go');
+    clearTimeout(showStamp.t); showStamp.t = setTimeout(() => { stamp.hidden = true; }, 1500);
+  }
+
+  function showBubble(text, gx, gy, accepted) {
+    const b = document.createElement('div'); b.className = 'bubble' + (accepted ? ' ok' : '');
+    const card = document.createElement('div'); card.className = 'bubble-card';
+    const who = document.createElement('span'); who.className = 'bubble-who';
+    who.textContent = 'Klient · ' + new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    const t = document.createElement('span'); t.className = 'bubble-text'; t.textContent = text;
+    card.append(who, t); b.append(card); bubbles.append(b);
+    while (bubbles.children.length > 3) bubbles.firstElementChild.remove();
+    const w = b.offsetWidth, h = b.offsetHeight;
+    const cx = ox + (gx + 0.5) * cell, topY = oy + gy * cell;
+    // dymek po stronie, z której głowica przyjechała, żeby nie zasłaniał drogi
+    const roomAbove = topY - h - 10 >= 0;
+    const roomBelow = oy + (gy + 1) * cell + 9 + h <= ch;
+    let below = dir.y < 0;
+    if (below && !roomBelow) below = false;
+    if (!below && !roomAbove) below = true;
+    const left = Math.max(w / 2 + 4, Math.min(cw - w / 2 - 4, cx));
+    b.style.left = left + 'px';
+    b.style.top = (below ? oy + (gy + 1) * cell + 9 : topY - 7) + 'px';
+    if (below) b.classList.add('below');
+    b.style.setProperty('--tail', Math.max(-(w / 2 - 14), Math.min(w / 2 - 14, cx - left)) + 'px');
+    setTimeout(() => b.classList.add('out'), 2400);
+    setTimeout(() => b.remove(), 2950);
+  }
+
+  function addLog(text, partName, note, accepted) {
+    logEmpty.hidden = true;
+    const li = document.createElement('li'); li.className = 'new' + (accepted ? ' ok' : '');
+    const meta = document.createElement('div'); meta.className = 'log-meta';
+    const tm = document.createElement('span');
+    tm.textContent = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    const pn = document.createElement('span');
+    pn.textContent = 'detal ' + String(parts).padStart(2, '0') + ' · ' + partName;
+    meta.append(tm, pn);
+    const p = document.createElement('p'); p.className = 'log-text'; p.textContent = text;
+    li.append(meta, p);
+    if (note) { const n = document.createElement('p'); n.className = 'log-note'; n.textContent = note; li.append(n); }
+    logEl.prepend(li);
+    while (logEl.children.length > 60) logEl.lastElementChild.remove();
+  }
+
+  /* ===== Dźwięk (Web Audio, bez plików) ===== */
+  let actx = null;
+  function initAudio() {
+    if (!actx) {
+      try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); } catch (e) { actx = null; }
+    }
+    if (actx && actx.state === 'suspended') actx.resume().catch(() => {});
+  }
+  function tone(freq, dur, type, vol, delay, slide) {
+    if (muted || !actx) return;
+    try {
+      const t0 = actx.currentTime + (delay || 0);
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.03);
+    } catch (e) { /* bez dźwięku */ }
+  }
+  const sfx = {
+    eat() { tone(520, 0.09, 'square', 0.03, 0, 1040); },
+    msg() { tone(1318, 0.11, 'sine', 0.06, 0.14); tone(988, 0.17, 'sine', 0.06, 0.27); },
+    ok() { tone(784, 0.1, 'sine', 0.06, 0.12); tone(1046, 0.1, 'sine', 0.06, 0.22); tone(1318, 0.22, 'sine', 0.06, 0.32); },
+    shift() { tone(300, 0.12, 'triangle', 0.05, 0, 420); },
+    crash() { tone(180, 0.55, 'sawtooth', 0.06, 0, 45); tone(90, 0.4, 'square', 0.035, 0.05, 40); },
+  };
+  function renderMute() {
+    btnSound.textContent = muted ? 'Dźwięk: wył.' : 'Dźwięk: wł.';
+    btnSound.setAttribute('aria-pressed', String(!muted));
+  }
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) { /* bez zapisu */ }
+    renderMute(); if (!muted) initAudio();
+  }
+
+  /* ===== Iskry ===== */
+  function emitSpark() {
+    if (!headPx) return;
+    const a = Math.atan2(-dir.y, -dir.x) + (Math.random() - 0.5) * 1.9;
+    const sp = (60 + Math.random() * 150) * cell / 24;
+    particles.push({ x: headPx[0], y: headPx[1], vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.2 + Math.random() * 0.35, max: 0.55, color: null });
+  }
+  function burst(x, y, color, n) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * TAU, sp = (40 + Math.random() * 170) * cell / 24;
+      particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.35 + Math.random() * 0.45, max: 0.8, color });
+    }
+  }
+  function updateParticles(dt) {
+    const k = Math.pow(0.02, dt);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life -= dt;
+      if (p.life <= 0) { particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= k; p.vy *= k;
+    }
+    if (particles.length > 400) particles.splice(0, particles.length - 400);
+  }
+  function drawParticles() {
+    ctx.save(); ctx.lineCap = 'round';
+    for (const p of particles) {
+      const a = Math.max(0, p.life / p.max);
+      if (p.color) {
+        ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = a;
+        ctx.fillStyle = p.color; ctx.fillRect(p.x - 1.3, p.y - 1.3, 2.6, 2.6);
+      } else {
+        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, a * 1.4);
+        ctx.strokeStyle = a > 0.5 ? '#ffe7b0' : '#ff8a2a'; ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035); ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  /* ===== Rysowanie ===== */
+  function temper(u) {
+    const n = TEMPER.length - 1;
+    const f = Math.min(n - 1e-6, Math.max(0, u) * n), i = Math.floor(f), k = f - i;
+    const a = TEMPER[i], b = TEMPER[i + 1];
+    return 'rgb(' + Math.round(lerp(a[0], b[0], k)) + ',' + Math.round(lerp(a[1], b[1], k)) + ',' + Math.round(lerp(a[2], b[2], k)) + ')';
+  }
+
+  /* kontur detalu; zwraca punkt przebicia (start konturu) */
+  function tracePart(type, r, sx, sy, outerOnly) {
+    if (type === 'star') {
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
+        const x = Math.cos(a) * rr * sx, y = Math.sin(a) * rr * sy;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      return [0, -r * sy];
+    }
+    if (type === 'washer') {
+      ctx.moveTo(r * 0.9 * sx, 0); ctx.ellipse(0, 0, r * 0.9 * sx, r * 0.9 * sy, 0, 0, TAU);
+      if (!outerOnly) { ctx.moveTo(r * 0.38 * sx, 0); ctx.ellipse(0, 0, r * 0.38 * sx, r * 0.38 * sy, 0, 0, TAU); }
+      return [r * 0.9 * sx, 0];
+    }
+    for (let i = 0; i <= 32; i++) {
+      const a = i / 32 * TAU, rr = i % 4 < 2 ? r : r * 0.76;
+      const x = Math.cos(a) * rr * sx, y = Math.sin(a) * rr * sy;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    if (!outerOnly) { ctx.moveTo(r * 0.28 * sx, 0); ctx.ellipse(0, 0, r * 0.28 * sx, r * 0.28 * sy, 0, 0, TAU); }
+    return [r * sx, 0];
+  }
+
+  function drawFood(now) {
+    if (!food) return;
+    let fx = food.x, fy = food.y;
+    if (food.from) {
+      const u = Math.min(1, (now - food.shiftT) / 450), e = easeOut(u);
+      fx = lerp(food.from.x, food.x, e); fy = lerp(food.from.y, food.y, e);
+      if (u >= 1) food.from = null;
+    }
+    const cx = ox + (fx + 0.5) * cell, cy = oy + (fy + 0.5) * cell;
+    const appear = easeOut(Math.min(1, (now - food.born) / 380));
+    const r = cell * 0.44 * food.scale * appear;
+    if (r < 0.5) return;
+    const sx = food.sx, sy = food.sy;
+
+    const pulse = 0.5 + 0.5 * Math.sin(now / 380);
+    const hr = cell * 1.1 * Math.max(1, food.scale);
+    const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, hr);
+    halo.addColorStop(0, 'rgba(88,208,255,' + (0.1 + 0.08 * pulse).toFixed(3) + ')');
+    halo.addColorStop(1, 'rgba(88,208,255,0)');
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, hr, 0, TAU); ctx.fill();
+
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.beginPath(); tracePart(food.type, r, sx, sy, false);
+    if (food.ral) {
+      ctx.fillStyle = food.ral[1]; ctx.fill('evenodd');
+      const sheen = ctx.createLinearGradient(-r, -r, r, r);
+      sheen.addColorStop(0, 'rgba(255,255,255,0.35)'); sheen.addColorStop(0.6, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sheen; ctx.fill('evenodd');
+    } else {
+      const steel = ctx.createLinearGradient(-r, -r, r, r);
+      steel.addColorStop(0, '#eef2f4'); steel.addColorStop(0.55, '#b3bdc5'); steel.addColorStop(1, '#7d8891');
+      ctx.fillStyle = steel; ctx.fill('evenodd');
+    }
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(10,14,18,0.8)'; ctx.stroke();
+
+    // ścieżka narzędzia jak w programie do nestingu
+    ctx.beginPath();
+    const pierce = tracePart(food.type, r * 1.16 + 1.5, sx, sy, true);
+    ctx.setLineDash([Math.max(2, cell * 0.14), Math.max(2, cell * 0.1)]);
+    ctx.lineDashOffset = -now / 28;
+    ctx.strokeStyle = 'rgba(96,212,255,0.85)'; ctx.lineWidth = 1.25; ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ff5a4a'; ctx.beginPath(); ctx.arc(pierce[0], pierce[1], 1.8, 0, TAU); ctx.fill();
+    ctx.restore();
+
+    if (food.ral) {
+      ctx.font = '500 ' + Math.max(9, Math.round(cell * 0.36)) + 'px ' + MONO;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = 'rgba(232,237,240,0.85)';
+      ctx.fillText(food.ral[0], cx, Math.min(oy + rows * cell - 10, cy + r * sy + 5));
+    }
+    if (food.note && now - food.noteT < 1500) {
+      const a = 1 - (now - food.noteT) / 1500;
+      ctx.globalAlpha = Math.min(1, a * 2);
+      ctx.font = '600 ' + Math.max(10, Math.round(cell * 0.42)) + 'px ' + MONO;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillStyle = '#f2c12e';
+      ctx.fillText(food.note, cx, Math.max(oy + 14, cy - r * sy - 6));
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function strokeThrough(pts, from, to) {
+    if (to - from < 2) return;
+    ctx.beginPath(); ctx.moveTo(pts[from][0], pts[from][1]);
+    for (let i = from + 1; i < to; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke();
+  }
+
+  function drawSnake(t) {
+    const n = snake.length; if (!n) return;
+    const P = (x, y) => [ox + (x + 0.5) * cell, oy + (y + 0.5) * cell];
+    const c0 = snake[0], p0 = prev[0] || c0;
+    const pts = [P(lerp(p0.x, c0.x, t), lerp(p0.y, c0.y, t))];
+    for (let i = 1; i < n; i++) pts.push(P(snake[i].x, snake[i].y));
+    const last = snake[n - 1], pl = prev[n - 1];
+    if (n > 1 && pl) pts.push(P(lerp(pl.x, last.x, t), lerp(pl.y, last.y, t)));
+    headPx = pts[0];
+    const m = pts.length, w = cell * 0.52;
+
+    ctx.save();
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = w + 4;
+    strokeThrough(pts, 0, m);
+    ctx.lineWidth = w;
+    const span = Math.max(7, m - 1);
+    for (let i = m - 1; i >= 1; i--) {
+      ctx.strokeStyle = temper((i - 0.5) / span);
+      ctx.beginPath(); ctx.moveTo(pts[i][0], pts[i][1]); ctx.lineTo(pts[i - 1][0], pts[i - 1][1]); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(8,10,12,0.55)'; ctx.lineWidth = Math.max(1, w * 0.2);
+    strokeThrough(pts, 1, m);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = 'rgba(255,140,50,0.22)'; ctx.lineWidth = w * 1.9;
+    strokeThrough(pts, 0, Math.min(m, 4));
+
+    // głowica: miedziana dysza z punktem cięcia
+    const hx = pts[0][0], hy = pts[0][1], r = cell * 0.4;
+    const glow = ctx.createRadialGradient(hx, hy, 0, hx, hy, cell * 1.3);
+    glow.addColorStop(0, 'rgba(255,210,140,0.55)'); glow.addColorStop(0.4, 'rgba(255,140,50,0.18)'); glow.addColorStop(1, 'rgba(255,120,40,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(hx, hy, cell * 1.3, 0, TAU); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    const cu = ctx.createLinearGradient(hx - r, hy - r, hx + r, hy + r);
+    cu.addColorStop(0, '#f0b27a'); cu.addColorStop(0.5, '#c47a3f'); cu.addColorStop(1, '#7b3f1c');
+    ctx.fillStyle = cu; ctx.beginPath(); ctx.arc(hx, hy, r, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(30,14,6,0.8)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#2b1a10'; ctx.beginPath(); ctx.arc(hx, hy, r * 0.55, 0, TAU); ctx.fill();
+    const flick = state === 'run' ? 0.8 + Math.random() * 0.35 : 1;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = state === 'over' ? '#ff6a3a' : '#fff6dc';
+    ctx.beginPath(); ctx.arc(hx, hy, r * 0.32 * flick, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  function draw(now) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+    if (bedLayer) ctx.drawImage(bedLayer, 0, 0, cw, ch);
+    let t = 1;
+    if (state === 'run') t = Math.min(1, Math.max(0, (now - lastTick) / tickMs));
+    else if (state === 'paused') t = pauseT;
+    drawFood(now);
+    drawSnake(t);
+    drawParticles();
+  }
+
+  let lastFrame = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, Math.max(0, (now - lastFrame) / 1000)); lastFrame = now;
+    if (state === 'run') {
+      let guard = 0;
+      while (state === 'run' && now - lastTick >= tickMs && guard++ < 4) { lastTick += tickMs; step(now); }
+      if (state === 'run' && now - lastTick > tickMs * 2) lastTick = now;
+      if (state === 'run' && food && food.pendingShift && now >= food.pendingShift.at) doShift(now);
+      if (state === 'run') {
+        sparkAcc += dt * (reduceMotion ? 18 : 55);
+        while (sparkAcc >= 1) { emitSpark(); sparkAcc -= 1; }
+      }
+    }
+    updateParticles(dt);
+    draw(now);
+    requestAnimationFrame(frame);
+  }
+
+  /* ===== Sterowanie ===== */
+  const KEYS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
+  window.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if (KEYS[k]) { e.preventDefault(); turn(KEYS[k][0], KEYS[k][1]); return; }
+    const onButton = e.target instanceof Element && e.target.closest('button');
+    if (onButton && (k === ' ' || k === 'Enter')) return;
+    if (k === ' ' || k === 'p') {
+      e.preventDefault();
+      if (state === 'run' || state === 'paused') togglePause(); else start();
+      return;
+    }
+    if (k === 'Enter') { if (state === 'ready' || state === 'over') { e.preventDefault(); start(); } return; }
+    if (k === 'm') toggleMute();
+  });
+
+  const clickOf = (fn) => (e) => { if (e.detail) e.currentTarget.blur(); fn(); };
+  $('btnStart').addEventListener('click', clickOf(start));
+  $('btnRestart').addEventListener('click', clickOf(start));
+  $('btnResume').addEventListener('click', clickOf(togglePause));
+  btnPause.addEventListener('click', clickOf(() => { if (state === 'run' || state === 'paused') togglePause(); }));
+  btnSound.addEventListener('click', clickOf(toggleMute));
+  document.querySelectorAll('[data-dir]').forEach((b) => {
+    b.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const [x, y] = b.dataset.dir.split(',').map(Number);
+      initAudio(); turn(x, y);
+    });
+  });
+
+  let touch = null;
+  wrap.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    touch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, { passive: true });
+  wrap.addEventListener('touchmove', (e) => {
+    if (!touch) return;
+    if (state === 'run') e.preventDefault();
+    const dx = e.touches[0].clientX - touch.x, dy = e.touches[0].clientY - touch.y;
+    if (Math.hypot(dx, dy) > 22) {
+      if (state === 'ready') initAudio();
+      if (Math.abs(dx) > Math.abs(dy)) turn(Math.sign(dx), 0); else turn(0, Math.sign(dy));
+      touch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  }, { passive: false });
+  wrap.addEventListener('touchend', () => { touch = null; });
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'run') togglePause(); });
+  window.addEventListener('blur', () => { if (state === 'run') togglePause(); });
+
+  let resizeT = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => {
+      const [c] = isPortrait() ? [15, 30] : [30, 15];
+      if (state === 'ready' && c !== cols) { reset(); return; }
+      layout();
+    }, 120);
+  });
+
+  renderMute();
+  reset();
+  requestAnimationFrame(frame);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderBed()).catch(() => {});
+})();
+</script>
+
+</html>
